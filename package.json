@@ -1,0 +1,30 @@
+{
+  "name": "odin_battleship",
+  "version": "1.0.0",
+  "description": "creating a web version of battleship game",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonydwan/odin_battleship.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anthonydwan/odin_battleship/issues"
+  },
+  "homepage": "https://github.com/anthonydwan/odin_battleship#readme",
+  "devDependencies": {
+    "jest": "^27.2.0",
+    "scss": "^0.2.4",
+    "webpack": "^5.52.1",
+    "webpack-cli": "^4.8.0"
+  },
+  "dependencies": {
+    "css-loader": "^6.2.0",
+    "style-loader": "^3.2.1"
+  }
+}
