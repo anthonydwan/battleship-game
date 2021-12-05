@@ -2,16 +2,19 @@ import "./style.css";
 
 const createShip = (length) => {
   let hitbox = [];
+  const hp = length;
+  let hitCount = 0;
+
   for (let i = 0; i < length; i++) {
     hitbox.push("_");
   }
 
-  const hit = (index) => {
-    hitbox[index] = "X";
+  const hit = () => {
+    hitCount++;
   };
 
   const isSunk = () => {
-    return hitbox.every((box) => box === "X");
+    return hp === hitCount;
   };
 
   return {
@@ -42,24 +45,22 @@ const createGameBoard = () => {
 
   let board = createBoard();
 
-  const checkSpace = (position, length) => {
-    return position + length <= BOARD_SIZE;
+  const checkSpace = (row, col, length, align) => {
+    if (align === "vertical") {
+      return row >= 0 && row + length < BOARD_SIZE;
+    } else {
+      return col >= 0 && col + length < BOARD_SIZE;
+    }
   };
 
   const checkCollision = (row, col, length, align = "horizontal") => {
     if (align === "vertical") {
-      if (!(row >= 0 && row + length < BOARD_SIZE)) {
-        return false;
-      }
       for (let i = row; i < row + length; i++) {
         if (board[i][col]["hasShip"]) {
           return false;
         }
       }
     } else {
-      if (!(col >= 0 && col + length < BOARD_SIZE)) {
-        return false;
-      }
       for (let j = col; j < col + length; j++) {
         if (board[row][j]["hasShip"]) {
           return false;
@@ -69,39 +70,35 @@ const createGameBoard = () => {
     return true;
   };
 
-  const placeShip = (row, col, length, align = "horizontal") => {
-    const checkCol = checkCollision(row, col, length, align);
+  const placeShip = (shipObject, row, col, align = "horizontal") => {
+    const length = shipObject.length;
+    if (!checkSpace(row, col, length, align)) return false;
+    if (!checkCollision(row, col, length, align)) return false;
     if (align === "vertical") {
-      const checkSp = checkSpace(row, length);
-      if (checkSp && checkCol) {
-        for (let i = row; i < row + length; i++) {
-          board[i][col]["hasShip"] = true;
-        }
-        return true;
+      for (let i = row; i < row + length; i++) {
+        board[i][col]["hasShip"] = shipObject;
       }
     } else {
-      const checkSp = checkSpace(col, length);
-      if (checkSp && checkCol) {
-        for (let j = col; j < row + length; j++) {
-          board[row][j]["hasShip"] = true;
-        }
-        return true;
+      for (let j = col; j < row + length; j++) {
+        board[row][j]["hasShip"] = shipObject;
       }
     }
-    return false;
+    return true;
   };
 
-  const checkCellAttack = (row, col) => {
-    return board[row][col] === "_";
+  const receiveAttack = (row, col) => {
+    if (!board[row][col]["hasShot"] === false) return false;
+    board[row][col]["hasShot"] = true;
+    board[row][col]["hasShip"].hit();
+    return true;
   };
-
-  const receiveAttack = () => {};
 
   return {
     get board() {
       return board;
     },
     placeShip,
+    receiveAttack,
   };
 };
 
