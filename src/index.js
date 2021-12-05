@@ -48,13 +48,19 @@ const createGameBoard = () => {
 
   const checkCollision = (row, col, length, align = "horizontal") => {
     if (align === "vertical") {
+      if (!(row >= 0 && row + length < BOARD_SIZE)) {
+        return false;
+      }
       for (let i = row; i < row + length; i++) {
         if (board[i][col]["hasShip"]) {
           return false;
         }
       }
     } else {
-      for (let j = col; j < row + length; j++) {
+      if (!(col >= 0 && col + length < BOARD_SIZE)) {
+        return false;
+      }
+      for (let j = col; j < col + length; j++) {
         if (board[row][j]["hasShip"]) {
           return false;
         }
