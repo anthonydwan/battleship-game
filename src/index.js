@@ -1,5 +1,7 @@
 import "./style.css";
 
+const seedrandom = require("seedrandom");
+
 const createShip = (length) => {
   let hitbox = [];
   const hp = length;
@@ -102,4 +104,146 @@ const createGameBoard = () => {
   };
 };
 
-export { createShip, createGameBoard };
+// p2 (computer) makes a move
+// checks that if there has been a hit and that ship not sunk (first hit trigger)
+// if there is, make a logical move
+// if first hit - pick from the  left/right/top/bottom
+// if second hit - pick from same direction but on both sides (direction trigger)
+// 4th shot logic h h m -> flip direction
+// if ship sunk or no previous hit, make a random move
+// checks move has been made before (keep a list)
+//
+// push move to board object - player attacks
+// --> board receives attack
+// if hits, update triggers
+// if ship sinks, clear triggers
+
+// p1 (player) clicks on a box
+// registers row, col
+// checks move has not been made before
+// register move in
+// p1 attack -> p2 board
+// push move to board object
+//
+
+const createPlayer = () => {
+  let moveHistory = [];
+
+  const checkNoRepeatMove = (row, col) => {
+    return !moveHistory.includes(`${row}, ${col}`);
+  };
+
+  const registerMove = (row, col) => {
+    moveHistory.push(`${row}, ${col}`);
+  };
+
+  return {
+    get moveHistory() {
+      return moveHistory;
+    },
+    registerMove,
+    checkNoRepeatMove,
+  };
+};
+
+const humanPlayer = () => {
+  const mode = "human";
+  return Object.assign(
+    {
+      mode,
+    },
+    createPlayer()
+  );
+};
+
+const computerPlayer = () => {
+  const mode = "computer";
+  let savedHit = null;
+  let direction = null;
+
+  const RandomMove = () => {
+    row = Math.floor(Math.random() * 10);
+    col = Math.floor(Math.random() * 10);
+    return [row, col];
+  };
+
+  const registerHit = (row, col) => {
+    savedHit = [row, col];
+  };
+
+  const checkInBound = (row, col) => {
+    const BOARD_SIZE = 10;
+    return 0 <= row < BOARD_SIZE && 0 <= col < BOARD_SIZE;
+  };
+
+  const seekDirectionMove = (rng = Math.random()) => {
+    let row = savedHit[0];
+    let col = savedHit[1];
+
+    while (!checkInBound(row, col) && !checkNoRepeatMove) {
+      const seededRng = seedrandom(rng);
+      const randNum = Math.floor(seededRng() * 4);
+      switch (randNum) {
+        case 0:
+          row++;
+        case 1:
+          col++;
+        case 2:
+          row--;
+        case 3:
+          col--;
+      }
+      return [row, col];
+    }
+  };
+
+  const shot = (rng) => {
+    if (savedHit === null) {
+      return RandomMove;
+    } else if (savedHit !== null && direction === null) {
+      let move = seekDirectionMove(rng);
+      return move;
+    } else {
+      return;
+    }
+  };
+
+  const registerDirection = () => {};
+
+  const clearHit = () => {
+    savedHit = null;
+    direction = null;
+  };
+
+  return Object.assign(
+    {
+      mode,
+      registerHit,
+      registerDirection,
+      shot,
+    },
+    createPlayer()
+  );
+};
+
+const gameControl = () => {
+  const player1 = createPlayer();
+  const player2 = createPlayer();
+  const p1Board = createGameBoard();
+  const p2Board = createGameBoard();
+
+  let turnCounter = 1;
+
+  const turnControl = () => {
+    turnCounter = (turnCounter + 1) % 2;
+  };
+};
+
+export {
+  createPlayer,
+  computerPlayer,
+  humanPlayer,
+  createShip,
+  createGameBoard,
+  gameControl,
+};

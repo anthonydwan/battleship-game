@@ -1,4 +1,12 @@
-const { createShip, createGameBoard } = require("./index");
+const seedrandom = require("seedrandom");
+
+const {
+  humanPlayer,
+  computerPlayer,
+  createShip,
+  createGameBoard,
+  gameControl,
+} = require("./index");
 
 describe("testing ship object", () => {
   const testShip = createShip(2);
@@ -114,3 +122,74 @@ describe("testing gameBoard object", () => {
     expect(placeShipBoard.receiveAttack(0, 0)).toBe(false);
   });
 });
+
+describe("testing player move", () => {
+  const p1 = humanPlayer();
+
+  test("player make attack will be registered", () => {
+    p1.registerMove(0, 0);
+    p1.registerMove(0, 1);
+    expect(p1.moveHistory).toEqual(["0, 0", "0, 1"]);
+  });
+
+  test("player can detect illegal move", () => {
+    expect(p1.checkNoRepeatMove(0, 0)).toBe(false);
+    expect(p1.checkNoRepeatMove(0, 1)).toBe(false);
+    expect(p1.checkNoRepeatMove(3, 0)).toEqual(true);
+    p1.registerMove(3, 0);
+    expect(p1.checkNoRepeatMove(3, 0)).toBe(false);
+  });
+});
+
+describe("testing computer move", () => {
+  const p1 = computerPlayer();
+
+  test("predict 2nd hit move (2 possibilities)", () => {
+    const p2Board = createGameBoard();
+    const testShip = createShip(3);
+    p2Board.placeShip(testShip, 0, 0, "vertical");
+    p2Board.receiveAttack(0, 0);
+    p1.registerMove(0, 0);
+    p1.registerHit(0, 0);
+    expect(p1.shot(1)).toBe([0, 1]);
+    expect(p1.shot(2)).toBe([1, 0]);
+  });
+
+  test.skip("predict 4th hit after missing 2nd/3rd shot (definite)", () => {
+    const p2Board = createGameBoard();
+    const testShip = createShip(3);
+    p2Board.placeShip(testShip, 1, 0, "vertical");
+    p2Board.receiveAttack(1, 0);
+    p1.registerMove(1, 0);
+    p1.registerHit(1, 0);
+
+    //miss 2nd shot
+    p1.registerMove(0, 0);
+
+    //miss 3rd shot
+    p1.registerMove(1, 1);
+
+    //4th shot must hit
+    expect(p1.Shot((rng = 1))).toBe([2, 0]);
+  });
+
+  test.skip("predict 4th shot after missing 3rd and sinking ship", () => {
+    const p2Board = createGameBoard();
+    const testShip = createShip(3);
+    p2Board.placeShip(testShip, 1, 0, "vertical");
+    p2Board.receiveAttack(1, 0);
+    p1.registerMove(1, 0);
+    p1.registerHit(1, 0);
+
+    //miss 2nd shot
+    p1.registerMove(0, 0);
+
+    //hit 3rd shot
+    p1.registerMove(2, 0);
+
+    //4th shot must hit
+    expected(p1.Shot()).toBe([3, 0]);
+  });
+});
+
+describe("testing game module", () => {});
