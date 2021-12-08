@@ -126,18 +126,23 @@ const createGameBoard = () => {
 // push move to board object
 //
 
-const createPlayer = () => {
+const humanPlayer = () => {
+  const mode = "human";
+
   let moveHistory = [];
 
   const checkNoRepeatMove = (row, col) => {
-    return !moveHistory.includes(`${row}, ${col}`);
+    return !moveHistory.includes(`${row}${col}`);
   };
 
   const registerMove = (row, col) => {
-    moveHistory.push(`${row}, ${col}`);
+    moveHistory.push(`${row}${col}`);
   };
 
   return {
+    get mode() {
+      return mode;
+    },
     get moveHistory() {
       return moveHistory;
     },
@@ -146,24 +151,23 @@ const createPlayer = () => {
   };
 };
 
-const humanPlayer = () => {
-  const mode = "human";
-  return Object.assign(
-    {
-      mode,
-    },
-    createPlayer()
-  );
-};
-
 const computerPlayer = () => {
+  let moveHistory = [];
   const mode = "computer";
   let savedHit = null;
   let direction = null;
 
-  const RandomMove = () => {
-    row = Math.floor(Math.random() * 10);
-    col = Math.floor(Math.random() * 10);
+  const checkNoRepeatMove = (row, col) => {
+    return !moveHistory.includes(`${row}${col}`);
+  };
+
+  const registerMove = (row, col) => {
+    moveHistory.push(`${row}${col}`);
+  };
+
+  const randomMove = () => {
+    let row = Math.floor(Math.random() * 10);
+    let col = Math.floor(Math.random() * 10);
     return [row, col];
   };
 
@@ -179,33 +183,37 @@ const computerPlayer = () => {
   const seekDirectionMove = (rng = Math.random()) => {
     let row = savedHit[0];
     let col = savedHit[1];
-
-    while (!checkInBound(row, col) && !checkNoRepeatMove) {
-      const seededRng = seedrandom(rng);
-      const randNum = Math.floor(seededRng() * 4);
-      switch (randNum) {
-        case 0:
-          row++;
-        case 1:
-          col++;
-        case 2:
-          row--;
-        case 3:
-          col--;
-      }
-      return [row, col];
+    const seededRng = seedrandom(rng);
+    const randNum = Math.floor(seededRng() * 4);
+    switch (randNum) {
+      case 0:
+        row++;
+      case 1:
+        col++;
+      case 2:
+        row--;
+      case 3:
+        col--;
+        return [row, col];
     }
   };
 
   const shot = (rng) => {
-    if (savedHit === null) {
-      return RandomMove;
-    } else if (savedHit !== null && direction === null) {
-      let move = seekDirectionMove(rng);
-      return move;
-    } else {
-      return;
+    let row = 0;
+    let col = 0;
+    let coord = null;
+    while (!checkNoRepeatMove(row, col) || !checkInBound(row, col)) {
+      if (savedHit === null) {
+        coord = randomMove();
+      } else if (savedHit !== null) {
+        coord = seekDirectionMove(rng);
+      } else {
+        return;
+      }
+      row = coord[0];
+      col = coord[1];
     }
+    return [row, col];
   };
 
   const registerDirection = () => {};
@@ -215,15 +223,19 @@ const computerPlayer = () => {
     direction = null;
   };
 
-  return Object.assign(
-    {
-      mode,
-      registerHit,
-      registerDirection,
-      shot,
+  return {
+    get mode() {
+      return mode;
     },
-    createPlayer()
-  );
+    get moveHistory() {
+      return moveHistory;
+    },
+    registerHit,
+    registerDirection,
+    shot,
+    registerMove,
+    checkNoRepeatMove,
+  };
 };
 
 const gameControl = () => {
@@ -240,7 +252,6 @@ const gameControl = () => {
 };
 
 export {
-  createPlayer,
   computerPlayer,
   humanPlayer,
   createShip,

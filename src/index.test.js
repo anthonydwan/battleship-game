@@ -129,7 +129,7 @@ describe("testing player move", () => {
   test("player make attack will be registered", () => {
     p1.registerMove(0, 0);
     p1.registerMove(0, 1);
-    expect(p1.moveHistory).toEqual(["0, 0", "0, 1"]);
+    expect(p1.moveHistory).toEqual(["00", "01"]);
   });
 
   test("player can detect illegal move", () => {
@@ -144,6 +144,16 @@ describe("testing player move", () => {
 describe("testing computer move", () => {
   const p1 = computerPlayer();
 
+  test("make a random shot", () => {
+    const p2Board = createGameBoard();
+    const testShip = createShip(3);
+    p2Board.placeShip(testShip, 0, 0, "vertical");
+    expect(p1.shot(1)[0]).toBeGreaterThanOrEqual(0);
+    expect(p1.shot(1)[0]).toBeLessThan(10);
+    expect(p1.shot(1)[1]).toBeGreaterThanOrEqual(0);
+    expect(p1.shot(1)[1]).toBeLessThan(10);
+  });
+
   test("predict 2nd hit move (2 possibilities)", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
@@ -151,8 +161,8 @@ describe("testing computer move", () => {
     p2Board.receiveAttack(0, 0);
     p1.registerMove(0, 0);
     p1.registerHit(0, 0);
-    expect(p1.shot(1)).toBe([0, 1]);
-    expect(p1.shot(2)).toBe([1, 0]);
+    expect(p1.shot(5)).toStrictEqual([0, -1]);
+    expect(p1.shot(0)).toStrictEqual([0, 1]);
   });
 
   test.skip("predict 4th hit after missing 2nd/3rd shot (definite)", () => {
@@ -170,7 +180,7 @@ describe("testing computer move", () => {
     p1.registerMove(1, 1);
 
     //4th shot must hit
-    expect(p1.Shot((rng = 1))).toBe([2, 0]);
+    expect(p1.shot((rng = 1))).toBe([2, 0]);
   });
 
   test.skip("predict 4th shot after missing 3rd and sinking ship", () => {
@@ -188,7 +198,7 @@ describe("testing computer move", () => {
     p1.registerMove(2, 0);
 
     //4th shot must hit
-    expected(p1.Shot()).toBe([3, 0]);
+    expected(p1.shot()).toBe([3, 0]);
   });
 });
 
