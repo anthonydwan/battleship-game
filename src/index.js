@@ -154,8 +154,9 @@ const humanPlayer = () => {
 const computerPlayer = () => {
   let moveHistory = [];
   const mode = "computer";
-  let savedHit = null;
-  let direction = null;
+  let shipCoord = [];
+  let foundAllShip = false;
+  const NUM_SHIP = 5;
 
   const checkNoRepeatMove = (row, col) => {
     return !moveHistory.includes(`${row}${col}`);
@@ -165,50 +166,79 @@ const computerPlayer = () => {
     moveHistory.push(`${row}${col}`);
   };
 
-  const randomMove = () => {
+  const randomCheckerMove = () => {
     let row = Math.floor(Math.random() * 10);
-    let col = Math.floor(Math.random() * 10);
+    let col = null;
+    if (row % 2 == 0) {
+      col = Math.floor(Math.random() * 5) * 2;
+    } else {
+      col = Math.floor(math.random() * 5);
+    }
     return [row, col];
   };
 
-  const registerHit = (row, col) => {
-    savedHit = [row, col];
+  const checkhitAllShip = () => {
+    if (shipCoord.length === 5) {
+      foundAllShip = true;
+    }
+  };
+
+  const registerShipHit = (row, col) => {
+    let shipCoord = [row, col];
   };
 
   const checkInBound = (row, col) => {
     const BOARD_SIZE = 10;
-    return 0 <= row < BOARD_SIZE && 0 <= col < BOARD_SIZE;
+    return 0 <= row && row < BOARD_SIZE && 0 <= col && col < BOARD_SIZE;
   };
 
-  const seekDirectionMove = (rng = Math.random()) => {
+  const seekDirectionMove = () => {
     let row = savedHit[0];
     let col = savedHit[1];
-    const seededRng = seedrandom(rng);
-    const randNum = Math.floor(seededRng() * 4);
+    const randNum = Math.floor(Math.random() * 4);
     switch (randNum) {
       case 0:
         row++;
+        break;
       case 1:
         col++;
+        break;
       case 2:
         row--;
+        break;
       case 3:
         col--;
-        return [row, col];
+        break;
     }
+    return [row, col];
+  };
+  const createPotentialCoord = (row, col) => {
+    let left = [];
+    let right = [];
+    let up = [];
+    let down = [];
+    let inc = 1;
+    for (let i = 1; i < 5; i++) {
+      if (!checkInBound(row - inc, col)) break;
+      if (checkInBound(row + inc, col)) right.push(row - inc, col);
+      if (checkInBound(row, col - inc)) down.push(row, col - inc);
+      if (checkInBound(row, col + inc)) up.push(row, col + inc);
+      inc++;
+      left.push(row - i, col);
+    }
+
+    return { left, right, up, down };
   };
 
-  const shot = (rng) => {
+  const shot = () => {
     let row = 0;
     let col = 0;
     let coord = null;
     while (!checkNoRepeatMove(row, col) || !checkInBound(row, col)) {
-      if (savedHit === null) {
-        coord = randomMove();
-      } else if (savedHit !== null) {
-        coord = seekDirectionMove(rng);
+      if (!foundAllShip) {
+        coord = randomCheckerMove();
       } else {
-        return;
+        coord = seekDirectionMove();
       }
       row = coord[0];
       col = coord[1];
@@ -230,7 +260,7 @@ const computerPlayer = () => {
     get moveHistory() {
       return moveHistory;
     },
-    registerHit,
+    registerShipHit,
     registerDirection,
     shot,
     registerMove,

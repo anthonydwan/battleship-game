@@ -144,7 +144,7 @@ describe("testing player move", () => {
 describe("testing computer move", () => {
   const p1 = computerPlayer();
 
-  test("make a random shot", () => {
+  test("make a random checked shot", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
     p2Board.placeShip(testShip, 0, 0, "vertical");
@@ -154,15 +154,17 @@ describe("testing computer move", () => {
     expect(p1.shot(1)[1]).toBeLessThan(10);
   });
 
-  test("predict 2nd hit move (2 possibilities)", () => {
+  test.skip("predict 2nd hit move (2 possibilities)", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
     p2Board.placeShip(testShip, 0, 0, "vertical");
     p2Board.receiveAttack(0, 0);
     p1.registerMove(0, 0);
-    p1.registerHit(0, 0);
-    expect(p1.shot(5)).toStrictEqual([0, -1]);
-    expect(p1.shot(0)).toStrictEqual([0, 1]);
+    p1.registerShipHit(0, 0);
+    const shotTaken = p1.shot();
+    expect([0, 1].includes(shotTaken[0])).toBeTruthy();
+    expect([0, 1].includes(shotTaken[1])).toBeTruthy();
+    expect(shotTaken[0]).not.toEqual(shotTaken[1]);
   });
 
   test.skip("predict 4th hit after missing 2nd/3rd shot (definite)", () => {
@@ -171,7 +173,7 @@ describe("testing computer move", () => {
     p2Board.placeShip(testShip, 1, 0, "vertical");
     p2Board.receiveAttack(1, 0);
     p1.registerMove(1, 0);
-    p1.registerHit(1, 0);
+    p1.registerShipHit(1, 0);
 
     //miss 2nd shot
     p1.registerMove(0, 0);
@@ -180,7 +182,7 @@ describe("testing computer move", () => {
     p1.registerMove(1, 1);
 
     //4th shot must hit
-    expect(p1.shot((rng = 1))).toBe([2, 0]);
+    expect(p1.shot()).toBe([2, 0]);
   });
 
   test.skip("predict 4th shot after missing 3rd and sinking ship", () => {
@@ -189,7 +191,7 @@ describe("testing computer move", () => {
     p2Board.placeShip(testShip, 1, 0, "vertical");
     p2Board.receiveAttack(1, 0);
     p1.registerMove(1, 0);
-    p1.registerHit(1, 0);
+    p1.registerShipHit(1, 0);
 
     //miss 2nd shot
     p1.registerMove(0, 0);
