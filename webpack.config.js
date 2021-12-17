@@ -1,17 +1,18 @@
-const path = require('path');
+const path = require("path");
 
 module.exports = {
-  entry: './src/index.js',
+  entry: "./src/index.js",
   mode: "development",
   output: {
-    filename: 'main.js',
-    path: path.resolve(__dirname, 'dist'),
+    filename: "main.js",
+    path: path.resolve(__dirname, "dist"),
   },
-  module:{
+  module: {
     rules: [
-        {
-          test: /\.css$/i,
-          use: ['style-loader', 'css-loader'],
-        }]
-  }
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
+    ],
+  },
 };

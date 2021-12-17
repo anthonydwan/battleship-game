@@ -27,6 +27,7 @@
   "dependencies": {
     "css-loader": "^6.2.0",
     "seedrandom": "^3.0.5",
-    "style-loader": "^3.2.1"
+    "style-loader": "^3.2.1",
+    "watch": "^1.0.2"
   }
 }

@@ -1,7 +1,5 @@
 import "./style.css";
 
-const seedrandom = require("seedrandom");
-
 const createShip = (length) => {
   let hitbox = [];
   const hp = length;
@@ -101,6 +99,9 @@ const createGameBoard = () => {
   return {
     get board() {
       return board;
+    },
+    get BOARD_SIZE() {
+      return BOARD_SIZE;
     },
     placeShip,
     receiveAttack,
@@ -273,9 +274,11 @@ const computerPlayer = () => {
   };
 };
 
-const gameControl = () => {
-  const player1 = createPlayer();
-  const player2 = createPlayer();
+const gameControl = (() => {
+  const initiateGame = (mode = "") => {};
+  const player1 = humanPlayer();
+  const player2 = computerPlayer();
+
   const p1Board = createGameBoard();
   const p2Board = createGameBoard();
 
@@ -284,7 +287,44 @@ const gameControl = () => {
   const turnControl = () => {
     turnCounter = (turnCounter + 1) % 2;
   };
-};
+
+  return {
+    p1Board,
+    p2Board,
+  };
+})();
+
+const domControl = (() => {
+  const container = document.querySelector(".container");
+
+  const makeGrid = (parentDiv, size = gameBoard.BOARD_SIZE) => {
+    for (let i = 0; i < size * size; i++) {
+      let grid = document.createElement("div");
+      grid.classList.add("squareDiv");
+      // grid.addEventListener("mousemove", )
+      parentDiv.appendChild(grid);
+    }
+  };
+
+  const createSelfBoard = () => {
+    let selfBoard = document.createElement("div");
+    selfBoard.setAttribute("id", "selfBoard");
+    selfBoard.classList.add("boardContainer");
+    makeGrid(selfBoard, gameControl.p1Board.BOARD_SIZE);
+    container.appendChild(selfBoard);
+  };
+
+  const createOppBoard = () => {
+    let oppBoard = document.createElement("div");
+    oppBoard.setAttribute("id", "oppBoard");
+    oppBoard.classList.add("boardContainer");
+    makeGrid(oppBoard, gameControl.p2Board.BOARD_SIZE);
+    container.appendChild(oppBoard);
+  };
+
+  createSelfBoard();
+  createOppBoard();
+})();
 
 export {
   computerPlayer,
