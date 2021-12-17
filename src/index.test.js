@@ -154,26 +154,28 @@ describe("testing computer move", () => {
     expect(p1.shot(1)[1]).toBeLessThan(10);
   });
 
-  test.skip("predict 2nd hit move (2 possibilities)", () => {
+  test("predict 2nd hit move (2 possibilities)", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
+    const p1 = computerPlayer();
     p2Board.placeShip(testShip, 0, 0, "vertical");
     p2Board.receiveAttack(0, 0);
     p1.registerMove(0, 0);
-    p1.registerShipHit(0, 0);
+    p1.registerHit(0, 0);
     const shotTaken = p1.shot();
     expect([0, 1].includes(shotTaken[0])).toBeTruthy();
     expect([0, 1].includes(shotTaken[1])).toBeTruthy();
     expect(shotTaken[0]).not.toEqual(shotTaken[1]);
   });
 
-  test.skip("predict 4th hit after missing 2nd/3rd shot (definite)", () => {
+  test("predict 4th hit after missing 2nd/3rd shot (definite)", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
+    const p1 = computerPlayer();
     p2Board.placeShip(testShip, 1, 0, "vertical");
     p2Board.receiveAttack(1, 0);
     p1.registerMove(1, 0);
-    p1.registerShipHit(1, 0);
+    p1.registerHit(1, 0);
 
     //miss 2nd shot
     p1.registerMove(0, 0);
@@ -182,25 +184,35 @@ describe("testing computer move", () => {
     p1.registerMove(1, 1);
 
     //4th shot must hit
-    expect(p1.shot()).toBe([2, 0]);
+    expect(p1.shot()).toStrictEqual([2, 0]);
   });
 
-  test.skip("predict 4th shot after missing 3rd and sinking ship", () => {
+  test("predict 4th hit after missing 2nd/3rd shot of 2nd ship (definite)", () => {
     const p2Board = createGameBoard();
+    const sunkShip = createShip(2);
+    const p1 = computerPlayer();
+    p2Board.placeShip(sunkShip, 6, 0, "vertical");
+    p2Board.receiveAttack(6, 0);
+    p1.registerMove(6, 0);
+    p1.registerHit(6, 0);
+    p1.registerMove(7, 0);
+    p1.registerHit(7, 0);
+    p1.clearMemoryWhenSunkShip(sunkShip);
+
     const testShip = createShip(3);
     p2Board.placeShip(testShip, 1, 0, "vertical");
     p2Board.receiveAttack(1, 0);
     p1.registerMove(1, 0);
-    p1.registerShipHit(1, 0);
+    p1.registerHit(1, 0);
 
     //miss 2nd shot
     p1.registerMove(0, 0);
 
-    //hit 3rd shot
-    p1.registerMove(2, 0);
+    //miss 3rd shot
+    p1.registerMove(1, 1);
 
     //4th shot must hit
-    expected(p1.shot()).toBe([3, 0]);
+    expect(p1.shot()).toStrictEqual([2, 0]);
   });
 });
 

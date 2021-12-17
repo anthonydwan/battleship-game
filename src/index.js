@@ -11,6 +11,10 @@ const createShip = (length) => {
     hitCount++;
   };
 
+  const pushCoord = (row, col) => {
+    hitbox.push(`${row}${col}`);
+  };
+
   const isSunk = () => {
     return hp === hitCount;
   };
@@ -19,9 +23,7 @@ const createShip = (length) => {
     get hitbox() {
       return hitbox;
     },
-    set hitbox(array) {
-      hitbox = array;
-    },
+    pushCoord,
     length,
     hit,
     isSunk,
@@ -78,10 +80,12 @@ const createGameBoard = () => {
     if (align === "vertical") {
       for (let i = row; i < row + length; i++) {
         board[i][col]["hasShip"] = shipObject;
+        shipObject.pushCoord(i, col);
       }
     } else {
       for (let j = col; j < row + length; j++) {
         board[row][j]["hasShip"] = shipObject;
+        shipObject.pushCoord(row, j);
       }
     }
     return true;
@@ -102,28 +106,6 @@ const createGameBoard = () => {
     receiveAttack,
   };
 };
-
-// p2 (computer) makes a move
-// checks that if there has been a hit and that ship not sunk (first hit trigger)
-// if there is, make a logical move
-// if first hit - pick from the  left/right/top/bottom
-// if second hit - pick from same direction but on both sides (direction trigger)
-// 4th shot logic h h m -> flip direction
-// if ship sunk or no previous hit, make a random move
-// checks move has been made before (keep a list)
-//
-// push move to board object - player attacks
-// --> board receives attack
-// if hits, update triggers
-// if ship sinks, clear triggers
-
-// p1 (player) clicks on a box
-// registers row, col
-// checks move has not been made before
-// register move in
-// p1 attack -> p2 board
-// push move to board object
-//
 
 const humanPlayer = () => {
   const mode = "human";
@@ -153,9 +135,9 @@ const humanPlayer = () => {
 const computerPlayer = () => {
   let moveHistory = [];
   const mode = "computer";
-  let shipCoord = [];
-  let triedDirections = [];
-  const NUM_SHIP = 5;
+  let hitHistory = [];
+  let triedDirection = [];
+  let potentialMovesSets = [];
 
   const checkNoRepeatMove = (row, col) => {
     return !moveHistory.includes(`${row}${col}`);
@@ -164,8 +146,6 @@ const computerPlayer = () => {
   const registerMove = (row, col) => {
     moveHistory.push(`${row}${col}`);
   };
-
-
 
   const randomCheckerMove = () => {
     let row = Math.floor(Math.random() * 10);
@@ -178,8 +158,8 @@ const computerPlayer = () => {
     return [row, col];
   };
 
-  const registerShipHit = (row, col) => {
-    let shipCoord = [row, col];
+  const registerHit = (row, col) => {
+    hitHistory.push(`${row}${col}`);
   };
 
   const checkInBound = (row, col) => {
@@ -187,59 +167,72 @@ const computerPlayer = () => {
     return 0 <= row && row < BOARD_SIZE && 0 <= col && col < BOARD_SIZE;
   };
 
-
   const randomDirection = () => {
-    let vert = null
-    let inc = null
-    Math.round(Math.random()) == 1 ? vert = true : vert = false
-    Math.round(Math.random()) == 1 ? inc = 1 : inc = -1
-    return [inc, vert]
-  }
-  
+    let vert = null;
+    let inc = null;
+    Math.round(Math.random()) == 1 ? (vert = true) : (vert = false);
+    Math.round(Math.random()) == 1 ? (inc = 1) : (inc = -1);
+    return [inc, vert];
+  };
+
   const seekDirectionMove = () => {
-    let row = shipCoord[0];
-    let col = shipCoord[1];
-        /*
-    if no direction - find direction
-    if having direction - continue the last one 
-    a stack - try each shot - see if hit before, 
-    if shot not in history,
-    (from the register), if yes - try next
-    if has miss (shot in movehistory and not in shipCoord)
-      if len(direction) == 1: flip -1, 2 = flip direction, flip -1
-    */
+    let row = parseInt(hitHistory[0][0]);
+    let col = parseInt(hitHistory[0][1]);
 
-    if (triedDirections.length === 0) {
-      let direction = randomDirection()
-      triedDirections.push(direction)
-     }
-    else {
-      
+    if (triedDirection.length === 0) {
+      triedDirection = randomDirection();
+      potentialMovesSets = getFourDirCoord(
+        row,
+        col,
+        triedDirection[0],
+        triedDirection[1]
+      );
     }
-    let dir = randomDirection()
-    inc = dir[0]
-    vert = dir[1]
-
+    let i = 0;
+    while (i < 4) {
+      if (potentialMovesSets[i].length === 0) {
+        i++;
+        continue;
+      }
+      for (const move of potentialMovesSets[i]) {
+        let strMove = `${move[0]}${move[1]}`;
+        if (moveHistory.includes(strMove) && !hitHistory.includes(strMove)) {
+          i++;
+          break;
+        } else if (!moveHistory.includes(strMove)) {
+          return move;
+        }
+      }
     }
-    return [row, col];
   };
 
   const createPotentialCoord = (row, col, inc, vert) => {
-    arr = [];
-    let increment = inc;
-    let newRow = row
-    let newCol = col
+    let arr = [];
+    let newRow = row;
+    let newCol = col;
     for (let i = 1; i < 5; i++) {
       if (vert) {
-        newRow += increment
+        newRow += inc;
       } else {
-        newCol += increment
+        newCol += inc;
       }
-      if (!checkInBound(newRow, newCol)) break;
-      arr.push(newRow, newCol);
-      inc +=inc;
+
+      if (!checkInBound(newRow, newCol)) {
+        break;
+      }
+      arr.push([newRow, newCol]);
     }
     return arr;
+  };
+
+  const getFourDirCoord = (row, col, inc, vert) => {
+    const arr1 = createPotentialCoord(row, col, inc, vert);
+    const arr2 = createPotentialCoord(row, col, -inc, vert);
+    const arr3 = createPotentialCoord(row, col, -inc, !vert);
+    const arr4 = createPotentialCoord(row, col, inc, !vert);
+    let output = [arr1, arr2, arr3, arr4];
+    console.log(output);
+    return output;
   };
 
   const shot = () => {
@@ -247,7 +240,7 @@ const computerPlayer = () => {
     let col = 0;
     let coord = null;
     while (!checkNoRepeatMove(row, col) || !checkInBound(row, col)) {
-      if (!foundAllShip) {
+      if (hitHistory.length === 0) {
         coord = randomCheckerMove();
       } else {
         coord = seekDirectionMove();
@@ -258,11 +251,11 @@ const computerPlayer = () => {
     return [row, col];
   };
 
-  const registerDirection = () => {};
-
-  const clearHit = () => {
-    savedHit = null;
-    direction = null;
+  const clearMemoryWhenSunkShip = (ship) => {
+    for (let coord of ship.hitbox) {
+      hitHistory.splice(hitHistory.indexOf(coord), 1);
+    }
+    triedDirection = [];
   };
 
   return {
@@ -272,11 +265,11 @@ const computerPlayer = () => {
     get moveHistory() {
       return moveHistory;
     },
-    registerShipHit,
-    registerDirection,
+    registerHit,
     shot,
     registerMove,
     checkNoRepeatMove,
+    clearMemoryWhenSunkShip,
   };
 };
 
