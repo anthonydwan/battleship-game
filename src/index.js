@@ -306,6 +306,13 @@ const domControl = (() => {
     }
   };
 
+  const makeBoard = (selfBoard, size = BOARD_SIZE) => {
+    selfBoard.setAttribute("id", "selfBoard");
+    selfBoard.classList.add("boardContainer");
+    makeGrid(selfBoard, gameControl.p1Board.BOARD_SIZE);
+    container.appendChild(selfBoard);
+  };
+
   const createSelfBoard = () => {
     let selfBoard = document.createElement("div");
     selfBoard.setAttribute("id", "selfBoard");

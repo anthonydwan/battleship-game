@@ -25,13 +25,13 @@ body {
   margin: auto;
   display: -ms-grid;
   display: grid;
-  -ms-grid-columns: (1fr) [10];
-  grid-template-columns: repeat(10, 1fr);
-  -ms-grid-rows: (1fr) [10];
-  grid-template-rows: repeat(10, 1fr);
+  -ms-grid-columns: (1fr)[10];
+      grid-template-columns: repeat(10, 1fr);
+  -ms-grid-rows: (1fr)[10];
+      grid-template-rows: repeat(10, 1fr);
 }
 
 .squareDiv {
-  border: solid 0.1rem black;
+  border: solid 0.025rem black;
 }
 /*# sourceMappingURL=style.css.map */
