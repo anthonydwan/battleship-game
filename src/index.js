@@ -46,16 +46,16 @@ const createGameBoard = () => {
 
   let board = createBoard();
 
-  const checkSpace = (row, col, length, align) => {
-    if (align === "vertical") {
+  const checkSpace = (row, col, length, vert) => {
+    if (vert) {
       return row >= 0 && row + length < BOARD_SIZE;
     } else {
       return col >= 0 && col + length < BOARD_SIZE;
     }
   };
 
-  const checkCollision = (row, col, length, align = "horizontal") => {
-    if (align === "vertical") {
+  const checkCollision = (row, col, length, vert = true) => {
+    if (vert) {
       for (let i = row; i < row + length; i++) {
         if (board[i][col]["hasShip"]) {
           return false;
@@ -71,17 +71,23 @@ const createGameBoard = () => {
     return true;
   };
 
-  const placeShip = (shipObject, row, col, align = "horizontal") => {
+  const shipPlacementChecker = (row, col, length, vert) => {
+    return (
+      checkSpace(row, col, length, vert) &&
+      checkCollision(row, col, length, vert)
+    );
+  };
+
+  const placeShip = (shipObject, row, col, vert = true) => {
     const length = shipObject.length;
-    if (!checkSpace(row, col, length, align)) return false;
-    if (!checkCollision(row, col, length, align)) return false;
-    if (align === "vertical") {
+    if (!shipPlacementChecker(row, col, length, vert)) return false;
+    if (vert) {
       for (let i = row; i < row + length; i++) {
         board[i][col]["hasShip"] = shipObject;
         shipObject.pushCoord(i, col);
       }
     } else {
-      for (let j = col; j < row + length; j++) {
+      for (let j = col; j < col + length; j++) {
         board[row][j]["hasShip"] = shipObject;
         shipObject.pushCoord(row, j);
       }
@@ -110,13 +116,10 @@ const createGameBoard = () => {
 
 const humanPlayer = () => {
   const mode = "human";
-
   let moveHistory = [];
-
   const checkNoRepeatMove = (row, col) => {
     return !moveHistory.includes(`${row}${col}`);
   };
-
   const registerMove = (row, col) => {
     moveHistory.push(`${row}${col}`);
   };
@@ -232,7 +235,6 @@ const computerPlayer = () => {
     const arr3 = createPotentialCoord(row, col, -inc, !vert);
     const arr4 = createPotentialCoord(row, col, inc, !vert);
     let output = [arr1, arr2, arr3, arr4];
-    console.log(output);
     return output;
   };
 
@@ -275,12 +277,45 @@ const computerPlayer = () => {
 };
 
 const gameControl = (() => {
-  const initiateGame = (mode = "") => {};
-  const player1 = humanPlayer();
-  const player2 = computerPlayer();
+  const initiateGame = (mode = "playerVersusComputer") => {
+    const player1 = humanPlayer();
+    const player2 = computerPlayer();
 
-  const p1Board = createGameBoard();
-  const p2Board = createGameBoard();
+    const p1Board = createGameBoard();
+    const p2Board = createGameBoard();
+
+    return [p1Board, p2Board];
+  };
+
+  let [p1Board, p2Board] = initiateGame();
+
+  const shipSizeGroup = [5, 4, 3, 3, 2];
+
+  const createShipLoop = (groupSize) => {
+    let group = [];
+    for (let size of groupSize) {
+      let ship = createShip(size);
+      group.push(ship);
+    }
+    return group;
+  };
+  let p1Ships = createShipLoop(shipSizeGroup);
+  let p2Ships = createShipLoop(shipSizeGroup);
+
+  const generateCoordAlign = () => {
+    let row = Math.floor(Math.random() * 10);
+    let col = Math.floor(Math.random() * 10);
+    let vert = null;
+    Math.random() > 0.5 ? (vert = true) : (vert = false);
+    return [row, col, vert];
+  };
+
+  for (const ship of p2Ships) {
+    let [row, col, vert] = generateCoordAlign();
+    while (!p2Board.placeShip(ship, row, col, vert)) {
+      [row, col, vert] = generateCoordAlign();
+    }
+  }
 
   let turnCounter = 1;
 
@@ -297,40 +332,75 @@ const gameControl = (() => {
 const domControl = (() => {
   const container = document.querySelector(".container");
 
-  const makeGrid = (parentDiv, size = gameBoard.BOARD_SIZE) => {
-    for (let i = 0; i < size * size; i++) {
-      let grid = document.createElement("div");
-      grid.classList.add("squareDiv");
-      // grid.addEventListener("mousemove", )
-      parentDiv.appendChild(grid);
+  /*
+  when initialing the game:
+    1. the based on the ship to be placed, there will be that length of blocks
+    2. hovering on the squares to move where to place them
+    3. right click would change the orientation from horizontal to vertical
+    4. left click would place the ship
+      a. register placeShip in the board
+      b. the board would fill the colours denoting where the ship is
+      b. the intialization would move to the next ship
+  after the initialization, hover would do nothing to the self board
+   */
+
+  const makeGrid = (
+    parentDiv,
+    size = gameBoard.BOARD_SIZE,
+    classname = null
+  ) => {
+    let domBoard = [];
+    for (let i = 0; i < size; i++) {
+      domBoard.push([]);
     }
+    domBoard.forEach((row) => {
+      for (let j = 0; j < size; j++) {
+        let grid = document.createElement("div");
+        grid.classList.add("squareDiv");
+        parentDiv.appendChild(grid);
+        if (classname) grid.classList.add(classname);
+        row.push(grid);
+      }
+    });
+    return domBoard;
   };
 
-  const makeBoard = (selfBoard, size = BOARD_SIZE) => {
-    selfBoard.setAttribute("id", "selfBoard");
-    selfBoard.classList.add("boardContainer");
-    makeGrid(selfBoard, gameControl.p1Board.BOARD_SIZE);
-    container.appendChild(selfBoard);
+  const makeBoard = (boardDiv, size, boardId = null, gridClass = null) => {
+    if (boardId) boardDiv.setAttribute("id", boardId);
+    boardDiv.classList.add("boardContainer");
+    let domBoard = makeGrid(boardDiv, size, gridClass);
+    container.appendChild(boardDiv);
+    return domBoard;
   };
 
-  const createSelfBoard = () => {
-    let selfBoard = document.createElement("div");
-    selfBoard.setAttribute("id", "selfBoard");
-    selfBoard.classList.add("boardContainer");
-    makeGrid(selfBoard, gameControl.p1Board.BOARD_SIZE);
-    container.appendChild(selfBoard);
-  };
+  let selfBoard = document.createElement("div");
+  let domSelfBoard = makeBoard(
+    selfBoard,
+    gameControl.p1Board.BOARD_SIZE,
+    "selfBoard",
+    "selfBoardGrids"
+  );
 
-  const createOppBoard = () => {
-    let oppBoard = document.createElement("div");
-    oppBoard.setAttribute("id", "oppBoard");
-    oppBoard.classList.add("boardContainer");
-    makeGrid(oppBoard, gameControl.p2Board.BOARD_SIZE);
-    container.appendChild(oppBoard);
-  };
+  let oppBoard = document.createElement("div");
+  let domOppBoard = makeBoard(
+    oppBoard,
+    gameControl.p2Board.BOARD_SIZE,
+    "oppBoard",
+    "oppBoardGrids"
+  );
 
-  createSelfBoard();
-  createOppBoard();
+  // .removeEventListener("mousemove", makeBlack);
+  // break;
+
+  // const makeBlack = () => {
+  //   this.style.cssText =
+  //     "background-color: black; transition: all 0.25s ease-in-out;";
+  //   currentColor = "black";
+  // };
+
+  // const visualPlaceShip = () => {
+  //   // grid.addEventListener("onmousehover");
+  // };
 })();
 
 export {

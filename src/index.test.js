@@ -52,7 +52,7 @@ describe("testing gameBoard object", () => {
   test("placing ship on board horizontally (with ship object)", () => {
     const placeShipBoard = createGameBoard();
     const testShip = createShip(4);
-    placeShipBoard.placeShip(testShip, 0, 0);
+    placeShipBoard.placeShip(testShip, 0, 0, false);
     expect(placeShipBoard.board[0][0]["hasShip"]).toBe(testShip);
     expect(placeShipBoard.board[0][1]["hasShip"]).toBe(testShip);
     expect(placeShipBoard.board[0][2]["hasShip"]).toBe(testShip);
@@ -64,7 +64,7 @@ describe("testing gameBoard object", () => {
   test("placing ship on board vertically (with ship object", () => {
     const placeShipBoard = createGameBoard();
     const testShip = createShip(4);
-    placeShipBoard.placeShip(testShip, 0, 0, "vertical");
+    placeShipBoard.placeShip(testShip, 0, 0, true);
     expect(placeShipBoard.board[0][0]["hasShip"]).toBe(testShip);
     expect(placeShipBoard.board[1][0]["hasShip"]).toBe(testShip);
     expect(placeShipBoard.board[2][0]["hasShip"]).toBe(testShip);
@@ -76,39 +76,37 @@ describe("testing gameBoard object", () => {
   test("placing ship on board successfully returns true", () => {
     const placeShipBoard = createGameBoard();
     const testShip = createShip(4);
-    expect(placeShipBoard.placeShip(testShip, 0, 0, "vertical")).toBe(true);
+    expect(placeShipBoard.placeShip(testShip, 0, 0, true)).toBe(true);
   });
 
   test("placing ship on board outside board returns false", () => {
     const placeShipBoard = createGameBoard();
     const testShip = createShip(4);
-    expect(placeShipBoard.placeShip(testShip, 100, 0, "vertical")).toBe(false);
-    expect(placeShipBoard.placeShip(testShip, 0, 100, "horizontal")).toBe(
-      false
-    );
+    expect(placeShipBoard.placeShip(testShip, 100, 0, true)).toBe(false);
+    expect(placeShipBoard.placeShip(testShip, 0, 100, false)).toBe(false);
   });
 
   test("placing ship on board too long for board returns false", () => {
     const placeShipBoard = createGameBoard();
     const testShip = createShip(40);
-    expect(placeShipBoard.placeShip(testShip, 9, 0, "vertical")).toBe(false);
-    expect(placeShipBoard.placeShip(testShip, 0, 9, "horizontal")).toBe(false);
+    expect(placeShipBoard.placeShip(testShip, 9, 0, true)).toBe(false);
+    expect(placeShipBoard.placeShip(testShip, 0, 9, false)).toBe(false);
   });
 
   test("checking ship collisions", () => {
     const placeShipBoard = createGameBoard();
     const testShip = createShip(4);
     const testShip2 = createShip(4);
-    expect(placeShipBoard.placeShip(testShip, 0, 0, "vertical")).toBe(true);
-    expect(placeShipBoard.placeShip(testShip2, 0, 0, "horizontal")).toBe(false);
-    expect(placeShipBoard.placeShip(testShip2, 1, 0, "horizontal")).toBe(false);
-    expect(placeShipBoard.placeShip(testShip2, 0, 1, "horizontal")).toBe(true);
+    expect(placeShipBoard.placeShip(testShip, 0, 0, true)).toBe(true);
+    expect(placeShipBoard.placeShip(testShip2, 0, 0, false)).toBe(false);
+    expect(placeShipBoard.placeShip(testShip2, 1, 0, false)).toBe(false);
+    expect(placeShipBoard.placeShip(testShip2, 0, 1, false)).toBe(true);
   });
 
   test("receive attack and sinks ship", () => {
     const placeShipBoard = createGameBoard();
     const testShip = createShip(1);
-    placeShipBoard.placeShip(testShip, 0, 0, "vertical");
+    placeShipBoard.placeShip(testShip, 0, 0, true);
     expect(placeShipBoard.receiveAttack(0, 0)).toBe(true);
     expect(placeShipBoard.board[0][0]["hasShot"]).toBe(true);
     expect(testShip.isSunk()).toBe(true);
@@ -117,7 +115,7 @@ describe("testing gameBoard object", () => {
   test("cannot attack the same place twice", () => {
     const placeShipBoard = createGameBoard();
     const testShip = createShip(1);
-    placeShipBoard.placeShip(testShip, 0, 0, "vertical");
+    placeShipBoard.placeShip(testShip, 0, 0, true);
     expect(placeShipBoard.receiveAttack(0, 0)).toBe(true);
     expect(placeShipBoard.receiveAttack(0, 0)).toBe(false);
   });
@@ -147,7 +145,7 @@ describe("testing computer move", () => {
   test("make a random checked shot", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
-    p2Board.placeShip(testShip, 0, 0, "vertical");
+    p2Board.placeShip(testShip, 0, 0, true);
     expect(p1.shot(1)[0]).toBeGreaterThanOrEqual(0);
     expect(p1.shot(1)[0]).toBeLessThan(10);
     expect(p1.shot(1)[1]).toBeGreaterThanOrEqual(0);
@@ -158,7 +156,7 @@ describe("testing computer move", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
     const p1 = computerPlayer();
-    p2Board.placeShip(testShip, 0, 0, "vertical");
+    p2Board.placeShip(testShip, 0, 0, true);
     p2Board.receiveAttack(0, 0);
     p1.registerMove(0, 0);
     p1.registerHit(0, 0);
@@ -172,7 +170,7 @@ describe("testing computer move", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
     const p1 = computerPlayer();
-    p2Board.placeShip(testShip, 1, 0, "vertical");
+    p2Board.placeShip(testShip, 1, 0, true);
     p2Board.receiveAttack(1, 0);
     p1.registerMove(1, 0);
     p1.registerHit(1, 0);
@@ -191,7 +189,7 @@ describe("testing computer move", () => {
     const p2Board = createGameBoard();
     const sunkShip = createShip(2);
     const p1 = computerPlayer();
-    p2Board.placeShip(sunkShip, 6, 0, "vertical");
+    p2Board.placeShip(sunkShip, 6, 0, true);
     p2Board.receiveAttack(6, 0);
     p1.registerMove(6, 0);
     p1.registerHit(6, 0);
@@ -200,7 +198,7 @@ describe("testing computer move", () => {
     p1.clearMemoryWhenSunkShip(sunkShip);
 
     const testShip = createShip(3);
-    p2Board.placeShip(testShip, 1, 0, "vertical");
+    p2Board.placeShip(testShip, 1, 0, true);
     p2Board.receiveAttack(1, 0);
     p1.registerMove(1, 0);
     p1.registerHit(1, 0);
