@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 html,
@@ -16,6 +17,17 @@ body {
   width: 100%;
   margin: auto;
   display: flex;
+  box-sizing: border-box;
+}
+
+.ship {
+  width: 2.9rem;
+  height: 2.9rem;
+  background-color: rgb(90, 129, 207);
+  overflow: visible;
+  position: absolute;
+  border: solid 0.2rem rgb(0, 81, 255);
+  cursor: pointer;
 }
 
 .boardContainer {
@@ -23,10 +35,23 @@ body {
   width: 30rem;
   margin: auto;
   display: grid;
+  box-sizing: border-box;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
 }
 
 .squareDiv {
-  border: solid 0.025rem black;
+  display: inline-block;
+  box-sizing: border-box;
+  border: solid 0.0001rem rgba(13, 39, 70, 0.534);
+}
+
+.hold {
+  //when holding the ship
+  border: solid #ccc 0.04rem;
+}
+
+.invisible {
+  // when dragging the ship, the original position ship should disappear
+  display: none;
 }

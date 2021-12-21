@@ -1,6 +1,8 @@
 * {
   margin: 0;
   padding: 0;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
 }
 
 html,
@@ -18,6 +20,18 @@ body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+.ship {
+  width: 2.9rem;
+  height: 2.9rem;
+  background-color: #5a81cf;
+  overflow: visible;
+  position: absolute;
+  border: solid 0.2rem #0051ff;
+  cursor: pointer;
 }
 
 .boardContainer {
@@ -26,6 +40,8 @@ body {
   margin: auto;
   display: -ms-grid;
   display: grid;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   -ms-grid-columns: (1fr)[10];
       grid-template-columns: repeat(10, 1fr);
   -ms-grid-rows: (1fr)[10];
@@ -33,6 +49,17 @@ body {
 }
 
 .squareDiv {
-  border: solid 0.025rem black;
+  display: inline-block;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  border: solid 0.0001rem rgba(13, 39, 70, 0.534);
+}
+
+.hold {
+  border: solid #ccc 0.04rem;
+}
+
+.invisible {
+  display: none;
 }
 /*# sourceMappingURL=style.css.map */
