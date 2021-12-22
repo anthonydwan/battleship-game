@@ -48,10 +48,11 @@ body {
 
 .hold {
   //when holding the ship
-  border: solid #ccc 0.04rem;
+  position: absolute;
 }
 
 .invisible {
   // when dragging the ship, the original position ship should disappear
   display: none;
+  position: absolute;
 }

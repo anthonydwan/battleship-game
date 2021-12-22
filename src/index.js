@@ -363,6 +363,9 @@ const domControl = () => {
   after the initialization, hover would do nothing to the self board
    */
 
+  const SELF_BOARD_GRID = "selfGrids";
+  const OPP_BOARD_GRID = "oppGrids";
+
   const makeGrid = (parentDiv, size, classname = null) => {
     let domBoard = [];
     for (let i = 0; i < size; i++) {
@@ -370,8 +373,7 @@ const domControl = () => {
       for (let j = 0; j < size; j++) {
         let grid = document.createElement("div");
         grid.classList.add("squareDiv");
-        grid.row = i;
-        grid.col = j;
+        grid.setAttribute("id", `${classname}${i}${j}`);
         parentDiv.appendChild(grid);
         if (classname) grid.classList.add(classname);
         row.push(grid);
@@ -394,7 +396,7 @@ const domControl = () => {
     selfBoard,
     createGameBoard().BOARD_SIZE,
     "selfBoard",
-    "selfBoardGrids"
+    SELF_BOARD_GRID
   );
 
   // initial placement of the ships on the dom
@@ -402,45 +404,82 @@ const domControl = () => {
     let shipOnScreen = document.createElement("div");
     shipOnScreen.classList.add("ship");
     coord["vert"]
-      ? (shipOnScreen.style.height = `${(coord["length"] - 1) * 3 + 2.85}rem`)
-      : (shipOnScreen.style.width = `${(coord["length"] - 1) * 3 + 2.85}rem`);
+      ? (shipOnScreen.style.height = `${(coord["length"] - 1) * 3 + 2.9}rem`)
+      : (shipOnScreen.style.width = `${(coord["length"] - 1) * 3 + 2.9}rem`);
     shipOnScreen.setAttribute("draggable", true);
     domSelfBoard[coord["row"]][coord["col"]].appendChild(shipOnScreen);
   }
 
   //eventlisteners
+  let currShipHead = { row: null, col: null };
+  let startCursorPos = { row: null, col: null };
+  let offset = { x: null, y: null };
 
   const dragStart = (e) => {
     let currDiv = e.currentTarget;
     currDiv.classList.add("hold");
     // we need a small delay to make sure
     // ship is not invis at the time of dragging
+    let shipCoord = currDiv.parentElement.id;
+    currShipHead["row"] = parseInt(shipCoord.charAt(shipCoord.length - 2));
+    currShipHead["col"] = parseInt(shipCoord.charAt(shipCoord.length - 1));
     setTimeout(() => (currDiv.className = "invisible"), 0);
   };
 
   const dragEnd = (e) => {
     //after finishing holding the ship, it needs to not invis
     let currDiv = e.currentTarget;
+    currShipHead = { row: null, col: null };
+    startCursorPos = { row: null, col: null };
+    offset = { x: null, y: null };
     currDiv.className = "ship";
   };
 
   const dragOver = (e) => {
     e.preventDefault();
+    e.currentTarget.classList.add("over");
   };
 
   const dragEnter = (e) => {
+    // the first cell that it enters has to be from where the
+    // cursor is
     e.preventDefault();
+    let currDiv = e.currentTarget;
+    if (startCursorPos["row"] == null) {
+      startCursorPos["row"] = parseInt(
+        currDiv.id.charAt(currDiv.id.length - 2)
+      );
+      startCursorPos["col"] = parseInt(
+        currDiv.id.charAt(currDiv.id.length - 1)
+      );
+    }
     e.currentTarget.classList.add("hovered");
   };
 
   const dragLeave = (e) => {
-    e.currentTarget.className = "squareDiv";
+    e.currentTarget.className = `squareDiv ${SELF_BOARD_GRID}`;
   };
 
   const dragDrop = (e) => {
-    e.currentTarget.className = "empty";
-    let shipDiv = document.querySelector(".hold");
-    e.currentTarget.append(shipDiv);
+    // this e is the new cell
+    let currDiv = e.currentTarget;
+    e.currentTarget.className = `squareDiv ${SELF_BOARD_GRID}`;
+    let shipDiv = document.querySelector(".invisible");
+    if (
+      startCursorPos["row"] == currShipHead["row"] &&
+      startCursorPos["col"] == currShipHead["col"]
+    ) {
+      currDiv.append(shipDiv);
+    } else {
+      offset["y"] = startCursorPos["row"] - currShipHead["row"];
+      offset["x"] = startCursorPos["col"] - currShipHead["col"];
+      let endRow = parseInt(currDiv.id.charAt(currDiv.id.length - 2));
+      let endCol = parseInt(currDiv.id.charAt(currDiv.id.length - 1));
+      let correctedCell = document.querySelector(
+        `#${SELF_BOARD_GRID}${endRow - offset["y"]}${endCol - offset["x"]}`
+      );
+      correctedCell.append(shipDiv);
+    }
   };
 
   // add eventlisteners to the ships and cells
@@ -467,7 +506,7 @@ const domControl = () => {
     "oppBoardGrids"
   );
 
-  const selfBoardGrids = document.querySelectorAll(".selfBoardGrids");
+  const selfBoardGrids = document.querySelectorAll(`.${SELF_BOARD_GRID}`);
 
   // const visualPlaceShip = () => {
   //   // grid.addEventListener("onmousehover", );

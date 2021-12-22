@@ -56,10 +56,11 @@ body {
 }
 
 .hold {
-  border: solid #ccc 0.04rem;
+  position: absolute;
 }
 
 .invisible {
   display: none;
+  position: absolute;
 }
 /*# sourceMappingURL=style.css.map */
