@@ -5,6 +5,10 @@ const createShip = (length) => {
   const hp = length;
   let hitCount = 0;
 
+  const resetHitbox = () => {
+    hitbox = [];
+  };
+
   const hit = () => {
     hitCount++;
   };
@@ -21,6 +25,7 @@ const createShip = (length) => {
     get hitbox() {
       return hitbox;
     },
+    resetHitbox,
     pushCoord,
     length,
     hit,
@@ -30,7 +35,7 @@ const createShip = (length) => {
 
 const createGameBoard = () => {
   const BOARD_SIZE = 10;
-  let shipPlacementRegister = [];
+  let initShipCoord = [];
 
   const createBoard = () => {
     let board = [];
@@ -49,34 +54,53 @@ const createGameBoard = () => {
 
   const checkSpace = (row, col, length, vert) => {
     if (vert) {
-      return row >= 0 && row + length < BOARD_SIZE;
+      // return true if within bound
+      return row >= 0 && row + length - 1 < BOARD_SIZE;
     } else {
-      return col >= 0 && col + length < BOARD_SIZE;
+      return col >= 0 && col + length - 1 < BOARD_SIZE;
     }
   };
 
-  const checkCollision = (row, col, length, vert = true) => {
+  const checkCollision = (row, col, length, vert = true, shipObject = null) => {
+    // return true if no collision
     if (vert) {
       for (let i = row; i < row + length; i++) {
-        if (board[i][col]["hasShip"]) {
-          return false;
+        if (shipObject !== null) {
+          if (
+            board[i][col]["hasShip"] &&
+            board[i][col]["hasShip"] !== shipObject
+          )
+            return false;
+        } else {
+          if (board[i][col]["hasShip"]) return false;
         }
       }
     } else {
       for (let j = col; j < col + length; j++) {
-        if (board[row][j]["hasShip"]) {
-          return false;
+        if (shipObject !== null) {
+          if (
+            board[row][j]["hasShip"] &&
+            board[row][j]["hasShip"] !== shipObject
+          )
+            return false;
+        } else {
+          if (board[row][j]["hasShip"]) return false;
         }
       }
     }
     return true;
   };
 
+  const checkPosition = (row, col, length, vert = true, shipObject = null) => {
+    if (!checkSpace(row, col, length, vert)) return false;
+    if (!checkCollision(row, col, length, vert, shipObject)) return false;
+    return true;
+  };
+
   const placeShip = (shipObject, row, col, vert = true) => {
     const length = shipObject.length;
-    if (!checkSpace(row, col, length, vert)) return false;
-    if (!checkCollision(row, col, length, vert)) return false;
-    shipPlacementRegister.push({
+    if (!checkPosition(row, col, length, vert)) return false;
+    initShipCoord.push({
       row: row,
       col: col,
       length: length,
@@ -102,7 +126,6 @@ const createGameBoard = () => {
     board[row][col]["hasShip"].hit();
     return true;
   };
-
   return {
     get board() {
       return board;
@@ -110,11 +133,12 @@ const createGameBoard = () => {
     get BOARD_SIZE() {
       return BOARD_SIZE;
     },
-    get shipPlacementRegister() {
-      return shipPlacementRegister;
+    get initShipPlacement() {
+      return initShipCoord;
     },
     placeShip,
     receiveAttack,
+    checkPosition,
   };
 };
 
@@ -170,7 +194,7 @@ const computerPlayer = () => {
     hitHistory.push(`${row}${col}`);
   };
 
-  const checkInBound = (row, col) => {
+  const checkInBoundMove = (row, col) => {
     const BOARD_SIZE = 10;
     return 0 <= row && row < BOARD_SIZE && 0 <= col && col < BOARD_SIZE;
   };
@@ -225,7 +249,7 @@ const computerPlayer = () => {
         newCol += inc;
       }
 
-      if (!checkInBound(newRow, newCol)) {
+      if (!checkInBoundMove(newRow, newCol)) {
         break;
       }
       arr.push([newRow, newCol]);
@@ -246,7 +270,7 @@ const computerPlayer = () => {
     let row = 0;
     let col = 0;
     let coord = null;
-    while (!checkNoRepeatMove(row, col) || !checkInBound(row, col)) {
+    while (!checkNoRepeatMove(row, col) || !checkInBoundMove(row, col)) {
       if (hitHistory.length === 0) {
         coord = randomCheckerMove();
       } else {
@@ -328,43 +352,56 @@ const gameControl = (() => {
     return [player1, player2, p1Board, p2Board];
   };
 
+  const updateBoard = (board, ShipNum, newRow, newCol, rotate = false) => {
+    let { length, vert } = board.initShipPlacement[ShipNum];
+    let currShipObj = p1Ships[ShipNum];
+    for (let coord of currShipObj.hitbox) {
+      let row = parseInt(coord[0]);
+      let col = parseInt(coord[1]);
+      board.board[row][col]["hasShip"] = false;
+    }
+    currShipObj.resetHitbox();
+    if (rotate) vert = !vert;
+    board.initShipPlacement[ShipNum]["vert"] = vert;
+    if (vert) {
+      for (let i = newRow; i < newRow + length; i++) {
+        board.board[i][newCol]["hasShip"] = currShipObj;
+        currShipObj.pushCoord(i, newCol);
+      }
+    } else {
+      for (let j = newCol; j < newCol + length; j++) {
+        board.board[newRow][j]["hasShip"] = currShipObj;
+        currShipObj.pushCoord(newRow, j);
+      }
+    }
+    console.log(currShipObj.hitbox);
+  };
+
   let [p1, p2, p1Board, p2Board] = initiateGame();
 
   //remember to set ship draggable to false after game has been initiated
 
   return {
-    p1,
-    p2,
-    p1Board,
-    p2Board,
-    initiateGame,
-    get shipSizeGroup() {
-      return shipSizeGroup;
+    p1Ships,
+    get p1Board() {
+      return p1Board;
     },
+    initiateGame,
+    updateBoard,
   };
 })();
 
 const domControl = () => {
   const container = document.querySelector(".container");
-
-  /*
-  when initialing the game:
-    1. the based on the ship to be placed, there will be that length of blocks
-    2. randomly generate block places in the squares
-    3. drag and drop the other ships into the right place
-    3. right click or left click would change the orientation from horizontal to vertical
-      the grid must have some eventlistener
-      grid = row/col/div - eventlistener - trigger
-      function that changes div color
-      AND register placeShip in the board
-
-      b. the board would fill the colours denoting where the ship is
-      b. the intialization would move to the next ship
-  after the initialization, hover would do nothing to the self board
-   */
+  let finalP1ShipPlacement = gameControl.p1Board.initShipPlacement;
 
   const SELF_BOARD_GRID = "selfGrids";
   const OPP_BOARD_GRID = "oppGrids";
+
+  const getDivIdNum = (div, index = -1) => {
+    if (index < 0) return parseInt(div.id.charAt(div.id.length + index));
+    else return parseInt(div.id.charAt(index));
+  };
 
   const makeGrid = (parentDiv, size, classname = null) => {
     let domBoard = [];
@@ -400,9 +437,11 @@ const domControl = () => {
   );
 
   // initial placement of the ships on the dom
-  for (let coord of gameControl.p1Board.shipPlacementRegister) {
+  for (let i = 0; i < gameControl.p1Board.initShipPlacement.length; i++) {
+    let coord = gameControl.p1Board.initShipPlacement[i];
     let shipOnScreen = document.createElement("div");
     shipOnScreen.classList.add("ship");
+    shipOnScreen.setAttribute("id", `p1Ship${i}`);
     coord["vert"]
       ? (shipOnScreen.style.height = `${(coord["length"] - 1) * 3 + 2.9}rem`)
       : (shipOnScreen.style.width = `${(coord["length"] - 1) * 3 + 2.9}rem`);
@@ -415,15 +454,45 @@ const domControl = () => {
   let startCursorPos = { row: null, col: null };
   let offset = { x: null, y: null };
 
+  const click = (e) => {
+    let currDiv = e.currentTarget;
+    let shipNum = getDivIdNum(currDiv);
+    let shipCoord = currDiv.parentElement;
+    currShipHead["row"] = getDivIdNum(shipCoord, -2);
+    currShipHead["col"] = getDivIdNum(shipCoord);
+    if (
+      checkDomShipPosition(
+        currShipHead["row"],
+        currShipHead["col"],
+        currDiv,
+        true
+      )
+    ) {
+      console.log("passed position test (rotate)");
+      let temp = currDiv.style.height;
+      currDiv.style.height = currDiv.style.width;
+      currDiv.style.width = temp;
+      gameControl.updateBoard(
+        gameControl.p1Board,
+        shipNum,
+        currShipHead["row"],
+        currShipHead["col"],
+        true
+      );
+    } else {
+      console.log("failed position test (rotate)");
+    }
+  };
+
   const dragStart = (e) => {
     let currDiv = e.currentTarget;
     currDiv.classList.add("hold");
     // we need a small delay to make sure
     // ship is not invis at the time of dragging
-    let shipCoord = currDiv.parentElement.id;
-    currShipHead["row"] = parseInt(shipCoord.charAt(shipCoord.length - 2));
-    currShipHead["col"] = parseInt(shipCoord.charAt(shipCoord.length - 1));
-    setTimeout(() => (currDiv.className = "invisible"), 0);
+    let shipCoord = currDiv.parentElement;
+    currShipHead["row"] = getDivIdNum(shipCoord, -2);
+    currShipHead["col"] = getDivIdNum(shipCoord);
+    setTimeout(() => (currDiv.className = "invisible"), 2);
   };
 
   const dragEnd = (e) => {
@@ -441,17 +510,13 @@ const domControl = () => {
   };
 
   const dragEnter = (e) => {
-    // the first cell that it enters has to be from where the
+    // the first cell that it enters is almost always where the
     // cursor is
     e.preventDefault();
     let currDiv = e.currentTarget;
     if (startCursorPos["row"] == null) {
-      startCursorPos["row"] = parseInt(
-        currDiv.id.charAt(currDiv.id.length - 2)
-      );
-      startCursorPos["col"] = parseInt(
-        currDiv.id.charAt(currDiv.id.length - 1)
-      );
+      startCursorPos["row"] = getDivIdNum(currDiv, -2);
+      startCursorPos["col"] = getDivIdNum(currDiv);
     }
     e.currentTarget.classList.add("hovered");
   };
@@ -465,21 +530,61 @@ const domControl = () => {
     let currDiv = e.currentTarget;
     e.currentTarget.className = `squareDiv ${SELF_BOARD_GRID}`;
     let shipDiv = document.querySelector(".invisible");
-    if (
-      startCursorPos["row"] == currShipHead["row"] &&
-      startCursorPos["col"] == currShipHead["col"]
-    ) {
-      currDiv.append(shipDiv);
-    } else {
-      offset["y"] = startCursorPos["row"] - currShipHead["row"];
-      offset["x"] = startCursorPos["col"] - currShipHead["col"];
-      let endRow = parseInt(currDiv.id.charAt(currDiv.id.length - 2));
-      let endCol = parseInt(currDiv.id.charAt(currDiv.id.length - 1));
+    offset["y"] = startCursorPos["row"] - currShipHead["row"];
+    offset["x"] = startCursorPos["col"] - currShipHead["col"];
+    let endRow = getDivIdNum(currDiv, -2);
+    let endCol = getDivIdNum(currDiv);
+    let correctedRow = endRow - offset["y"];
+    let correctedCol = endCol - offset["x"];
+    let shipNum = getDivIdNum(shipDiv);
+    if (checkDomShipPosition(correctedRow, correctedCol, shipDiv)) {
+      console.log("passed position test");
       let correctedCell = document.querySelector(
-        `#${SELF_BOARD_GRID}${endRow - offset["y"]}${endCol - offset["x"]}`
+        `#${SELF_BOARD_GRID}${correctedRow}${correctedCol}`
       );
       correctedCell.append(shipDiv);
+      gameControl.updateBoard(
+        gameControl.p1Board,
+        shipNum,
+        correctedRow,
+        correctedCol
+      );
+    } else {
+      console.log("failed check (bound or collision)");
+      let originalCell = document.querySelector(
+        `#${SELF_BOARD_GRID}${currShipHead["row"]}${currShipHead["col"]}`
+      );
+      originalCell.append(shipDiv);
+      gameControl.updateBoard(
+        gameControl.p1Board,
+        shipNum,
+        currShipHead["row"],
+        currShipHead["col"]
+      );
     }
+  };
+
+  const getCurrShipPosInfo = (shipNum) => {
+    let info = gameControl.p1Board.initShipPlacement[shipNum];
+    return {
+      length: info["length"],
+      vert: info["vert"],
+    };
+  };
+
+  const checkDomShipPosition = (row, col, shipDiv, rotate = false) => {
+    let shipNum = getDivIdNum(shipDiv);
+    console.log(shipNum);
+    let currShipObj = gameControl.p1Ships[shipNum];
+    let { length, vert } = getCurrShipPosInfo(shipNum);
+    if (rotate) vert = !vert;
+    return gameControl.p1Board.checkPosition(
+      row,
+      col,
+      length,
+      vert,
+      currShipObj
+    );
   };
 
   // add eventlisteners to the ships and cells
@@ -488,6 +593,7 @@ const domControl = () => {
   for (const domShip of domShips) {
     domShip.addEventListener("dragstart", dragStart);
     domShip.addEventListener("dragend", dragEnd);
+    domShip.addEventListener("click", click);
   }
 
   for (const cell of cells) {
@@ -505,12 +611,6 @@ const domControl = () => {
     "oppBoard",
     "oppBoardGrids"
   );
-
-  const selfBoardGrids = document.querySelectorAll(`.${SELF_BOARD_GRID}`);
-
-  // const visualPlaceShip = () => {
-  //   // grid.addEventListener("onmousehover", );
-  // };
 };
 
 domControl();
