@@ -518,6 +518,12 @@ const domControl = () => {
   };
 
   const normalGameTurn = (e) => {
+    // FIXME: loop does not end
+    // FIXME: make the hit X not remove the ship
+    // FIXME: check, pretty sure shots are not taken in right order, need to make the loop more clean
+    // TODO: change the X to be red when hit, black when not hit
+    // TODO: add p1 sunk p2 ship indicator
+    // TODO: when entire ship sunk, box turn muted red
     let gridDiv = e.currentTarget;
     let rowAttack = getDivIdNum(gridDiv, -2);
     let colAttack = getDivIdNum(gridDiv);
