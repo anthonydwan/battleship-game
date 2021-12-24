@@ -123,7 +123,9 @@ const createGameBoard = () => {
   const receiveAttack = (row, col) => {
     if (!board[row][col]["hasShot"] === false) return false;
     board[row][col]["hasShot"] = true;
-    board[row][col]["hasShip"].hit();
+    let potentialShipObj = board[row][col]["hasShip"];
+    if (!potentialShipObj !== false) return false;
+    potentialShipObj.hit();
     return true;
   };
   return {
@@ -185,7 +187,7 @@ const computerPlayer = () => {
     if (row % 2 == 0) {
       col = Math.floor(Math.random() * 5) * 2;
     } else {
-      col = Math.floor(math.random() * 5);
+      col = Math.floor(Math.random() * 5);
     }
     return [row, col];
   };
@@ -266,7 +268,7 @@ const computerPlayer = () => {
     return output;
   };
 
-  const shot = () => {
+  const shoot = () => {
     let row = 0;
     let col = 0;
     let coord = null;
@@ -297,9 +299,8 @@ const computerPlayer = () => {
       return moveHistory;
     },
     registerHit,
-    shot,
+    shoot,
     registerMove,
-    checkNoRepeatMove,
     clearMemoryWhenSunkShip,
   };
 };
@@ -334,12 +335,6 @@ const gameControl = (() => {
     let vert = null;
     Math.random() > 0.5 ? (vert = true) : (vert = false);
     return [row, col, vert];
-  };
-
-  let turnCounter = 1;
-
-  const turnControl = () => {
-    turnCounter = (turnCounter + 1) % 2;
   };
 
   const initiateGame = (mode = "playerVersusComputer") => {
@@ -381,19 +376,57 @@ const gameControl = (() => {
 
   //remember to set ship draggable to false after game has been initiated
 
+  /*
+  normal mode: 
+  player move
+  register move
+  check if hit, if so, if ship sunk 
+  check if win
+  computer move 
+  register move
+  check if hit, if so, register hit
+  check if sunk, if so, register sunk
+  check if win 
+  */
+
+  const checkWin = (ships) => {
+    ships.every((ship) => ship.isSunk());
+  };
+
+  const p1Move = (row, col) => {
+    if (!p1.checkNoRepeatMove(row, col)) return false;
+    p1.registerMove(row, col);
+    return true;
+  };
+
+  const p2Move = () => {
+    let [row, col] = p2.shoot();
+    p2.registerMove(row, col);
+    return [row, col];
+  };
+
   return {
     p1Ships,
+    p2Ships,
     get p1Board() {
       return p1Board;
     },
+    get p2Board() {
+      return p2Board;
+    },
+    get p2() {
+      return p2;
+    },
     initiateGame,
     updateBoard,
+    p1Move,
+    p2Move,
+    checkWin,
   };
 })();
 
 const domControl = () => {
   const container = document.querySelector(".container");
-  let finalP1ShipPlacement = gameControl.p1Board.initShipPlacement;
 
   const SELF_BOARD_GRID = "selfGrids";
   const OPP_BOARD_GRID = "oppGrids";
@@ -454,7 +487,7 @@ const domControl = () => {
   let startCursorPos = { row: null, col: null };
   let offset = { x: null, y: null };
 
-  const click = (e) => {
+  const clickRotateShip = (e) => {
     let currDiv = e.currentTarget;
     let shipNum = getDivIdNum(currDiv);
     let shipCoord = currDiv.parentElement;
@@ -481,6 +514,42 @@ const domControl = () => {
       );
     } else {
       console.log("failed position test (rotate)");
+    }
+  };
+
+  const normalGameTurn = (e) => {
+    let gridDiv = e.currentTarget;
+    let rowAttack = getDivIdNum(gridDiv, -2);
+    let colAttack = getDivIdNum(gridDiv);
+    if (!gameControl.p1Move(rowAttack, colAttack)) return;
+    gridDiv.textContent = "X";
+    if (gameControl.p2Board.receiveAttack(rowAttack, colAttack)) {
+      gridDiv.style.backgroundColor = "red";
+      console.log("P1 hit!!");
+
+      if (gameControl.checkWin(gameControl.p2Ships)) {
+        console.log("P1 Win!");
+        return;
+      }
+    } else {
+      let [rowIncoming, colIncoming] = gameControl.p2Move();
+      let p1grid = document.querySelector(
+        `#${SELF_BOARD_GRID}${rowIncoming}${colIncoming}`
+      );
+      p1grid.textContent = "X";
+      if (gameControl.p1Board.receiveAttack(rowIncoming, colIncoming)) {
+        p1grid.style.backgroundColor = "red";
+        gameControl.p2.registerHit(rowIncoming, colIncoming);
+        let shipObj =
+          gameControl.p1Board.board[rowIncoming][colIncoming]["hasShip"];
+        if (shipObj.isSunk()) {
+          console.log("P2 Sunk a Ship");
+          gameControl.p2.clearMemoryWhenSunkShip(shipObj);
+          if (gameControl.checkWin(gameControl.p1Ships))
+            console.log("P2 Wins!");
+          return;
+        }
+      }
     }
   };
 
@@ -589,14 +658,14 @@ const domControl = () => {
 
   // add eventlisteners to the ships and cells
   const domShips = document.querySelectorAll(".ship");
-  const cells = document.querySelectorAll(".squareDiv");
+  const selfGrids = document.querySelectorAll(".selfBoardGrids");
   for (const domShip of domShips) {
     domShip.addEventListener("dragstart", dragStart);
     domShip.addEventListener("dragend", dragEnd);
-    domShip.addEventListener("click", click);
+    domShip.addEventListener("click", clickRotateShip);
   }
 
-  for (const cell of cells) {
+  for (const cell of selfGrids) {
     cell.addEventListener("dragover", dragOver);
     cell.addEventListener("dragenter", dragEnter);
     cell.addEventListener("dragleave", dragLeave);
@@ -609,8 +678,13 @@ const domControl = () => {
     oppBoard,
     createGameBoard().BOARD_SIZE,
     "oppBoard",
-    "oppBoardGrids"
+    OPP_BOARD_GRID
   );
+
+  const oppGrids = document.querySelectorAll(`.${OPP_BOARD_GRID}`);
+  for (let oppCell of oppGrids) {
+    oppCell.addEventListener("click", normalGameTurn);
+  }
 };
 
 domControl();
