@@ -28,6 +28,35 @@ describe("testing ship object", () => {
   test("check if ship sunk - true", () => {
     expect(sunkShip.isSunk()).toBe(true);
   });
+
+  test("check if a group of ships can detect all sink", () => {
+    let ship1 = createShip(1);
+    let ship2 = createShip(1);
+    let ship3 = createShip(1);
+    let ship4 = createShip(1);
+    let ship5 = createShip(1);
+    ship1.hit();
+    ship2.hit();
+    ship3.hit();
+    ship4.hit();
+    ship5.hit();
+    let shipGroup = [ship1, ship2, ship3, ship4, ship5];
+    expect(shipGroup.every((ship) => ship.isSunk())).toBe(true);
+  });
+
+  test("check if a group of ships can detect all sink false", () => {
+    let ship1 = createShip(1);
+    let ship2 = createShip(1);
+    let ship3 = createShip(1);
+    let ship4 = createShip(1);
+    let ship5 = createShip(1);
+    ship1.hit();
+    ship2.hit();
+    ship3.hit();
+    ship4.hit();
+    let shipGroup = [ship1, ship2, ship3, ship4, ship5];
+    expect(shipGroup.every((ship) => ship.isSunk())).toBe(false);
+  });
 });
 
 describe("testing gameBoard object", () => {
@@ -142,14 +171,14 @@ describe("testing player move", () => {
 describe("testing computer move", () => {
   const p1 = computerPlayer();
 
-  test("make a random checked shot", () => {
+  test("make a random checked shoot", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
     p2Board.placeShip(testShip, 0, 0, true);
-    expect(p1.shot(1)[0]).toBeGreaterThanOrEqual(0);
-    expect(p1.shot(1)[0]).toBeLessThan(10);
-    expect(p1.shot(1)[1]).toBeGreaterThanOrEqual(0);
-    expect(p1.shot(1)[1]).toBeLessThan(10);
+    expect(p1.shoot(1)[0]).toBeGreaterThanOrEqual(0);
+    expect(p1.shoot(1)[0]).toBeLessThan(10);
+    expect(p1.shoot(1)[1]).toBeGreaterThanOrEqual(0);
+    expect(p1.shoot(1)[1]).toBeLessThan(10);
   });
 
   test("predict 2nd hit move (2 possibilities)", () => {
@@ -160,13 +189,13 @@ describe("testing computer move", () => {
     p2Board.receiveAttack(0, 0);
     p1.registerMove(0, 0);
     p1.registerHit(0, 0);
-    const shotTaken = p1.shot();
+    const shotTaken = p1.shoot();
     expect([0, 1].includes(shotTaken[0])).toBeTruthy();
     expect([0, 1].includes(shotTaken[1])).toBeTruthy();
     expect(shotTaken[0]).not.toEqual(shotTaken[1]);
   });
 
-  test("predict 4th hit after missing 2nd/3rd shot (definite)", () => {
+  test("predict 4th hit after missing 2nd/3rd shoot (definite)", () => {
     const p2Board = createGameBoard();
     const testShip = createShip(3);
     const p1 = computerPlayer();
@@ -175,17 +204,17 @@ describe("testing computer move", () => {
     p1.registerMove(1, 0);
     p1.registerHit(1, 0);
 
-    //miss 2nd shot
+    //miss 2nd shoot
     p1.registerMove(0, 0);
 
-    //miss 3rd shot
+    //miss 3rd shoot
     p1.registerMove(1, 1);
 
-    //4th shot must hit
-    expect(p1.shot()).toStrictEqual([2, 0]);
+    //4th shoot must hit
+    expect(p1.shoot()).toStrictEqual([2, 0]);
   });
 
-  test("predict 4th hit after missing 2nd/3rd shot of 2nd ship (definite)", () => {
+  test("predict 4th hit after missing 2nd/3rd shoot of 2nd ship (definite)", () => {
     const p2Board = createGameBoard();
     const sunkShip = createShip(2);
     const p1 = computerPlayer();
@@ -203,14 +232,14 @@ describe("testing computer move", () => {
     p1.registerMove(1, 0);
     p1.registerHit(1, 0);
 
-    //miss 2nd shot
+    //miss 2nd shoot
     p1.registerMove(0, 0);
 
-    //miss 3rd shot
+    //miss 3rd shoot
     p1.registerMove(1, 1);
 
-    //4th shot must hit
-    expect(p1.shot()).toStrictEqual([2, 0]);
+    //4th shoot must hit
+    expect(p1.shoot()).toStrictEqual([2, 0]);
   });
 });
 

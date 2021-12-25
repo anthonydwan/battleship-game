@@ -406,8 +406,12 @@ const gameControl = (() => {
   };
 
   return {
-    p1Ships,
-    p2Ships,
+    get p1Ships() {
+      return p1Ships;
+    },
+    get p2Ships() {
+      return p2Ships;
+    },
     get p1Board() {
       return p1Board;
     },
@@ -517,44 +521,65 @@ const domControl = () => {
     }
   };
 
+  const makeCross = (div) => {
+    let moveIndicator = document.createElement("p");
+    moveIndicator.innerText = "X";
+    moveIndicator.classList.add("indicatorBase");
+    div.appendChild(moveIndicator);
+    return moveIndicator;
+  };
+
+  const p1AttackFlowOnDOM = (row, col, div) => {
+    if (!gameControl.p1Move(row, col)) return false;
+    let moveIndicator = makeCross(div);
+    if (gameControl.p2Board.receiveAttack(row, col)) {
+      console.log("P1 Hit!");
+      moveIndicator.classList.add("indicatorHit");
+      let shipObj = gameControl.p2Board.board[row][col]["hasShip"];
+      if (shipObj.isSunk()) {
+        for (let coord of shipObj.hitbox) {
+          let grid = document.querySelector(`#${OPP_BOARD_GRID}${coord}`);
+          grid.classList.add("hit");
+          console.log("P1 Sunk a ship");
+        }
+      }
+    }
+    return true;
+  };
+
+  const computerAttackFlow = () => {
+    let [row, col] = gameControl.p2Move();
+    let p1grid = document.querySelector(`#${SELF_BOARD_GRID}${row}${col}`);
+    let moveIndicator = makeCross(p1grid);
+    if (gameControl.p1Board.receiveAttack(row, col)) {
+      console.log("P2 hit");
+      moveIndicator.classList.add("indicatorHit");
+      gameControl.p2.registerHit(row, col);
+      let shipObj = gameControl.p1Board.board[row][col]["hasShip"];
+      if (shipObj.isSunk()) {
+        console.log("P2 Sunk a Ship");
+        gameControl.p2.clearMemoryWhenSunkShip(shipObj);
+      }
+    }
+  };
+
   const normalGameTurn = (e) => {
     // FIXME: loop does not end
-    // FIXME: make the hit X not remove the ship
     // FIXME: check, pretty sure shots are not taken in right order, need to make the loop more clean
-    // TODO: change the X to be red when hit, black when not hit
-    // TODO: add p1 sunk p2 ship indicator
-    // TODO: when entire ship sunk, box turn muted red
     let gridDiv = e.currentTarget;
     let rowAttack = getDivIdNum(gridDiv, -2);
     let colAttack = getDivIdNum(gridDiv);
-    if (!gameControl.p1Move(rowAttack, colAttack)) return;
-    gridDiv.textContent = "X";
-    if (gameControl.p2Board.receiveAttack(rowAttack, colAttack)) {
-      gridDiv.style.backgroundColor = "red";
-      console.log("P1 hit!!");
-
-      if (gameControl.checkWin(gameControl.p2Ships)) {
-        console.log("P1 Win!");
-        return;
-      }
+    if (!p1AttackFlowOnDOM(rowAttack, colAttack, gridDiv)) return;
+    console.log(gameControl.p2Ships);
+    if (gameControl.checkWin(gameControl.p2Ships)) {
+      console.log("P1 Win!");
+      return;
     } else {
-      let [rowIncoming, colIncoming] = gameControl.p2Move();
-      let p1grid = document.querySelector(
-        `#${SELF_BOARD_GRID}${rowIncoming}${colIncoming}`
-      );
-      p1grid.textContent = "X";
-      if (gameControl.p1Board.receiveAttack(rowIncoming, colIncoming)) {
-        p1grid.style.backgroundColor = "red";
-        gameControl.p2.registerHit(rowIncoming, colIncoming);
-        let shipObj =
-          gameControl.p1Board.board[rowIncoming][colIncoming]["hasShip"];
-        if (shipObj.isSunk()) {
-          console.log("P2 Sunk a Ship");
-          gameControl.p2.clearMemoryWhenSunkShip(shipObj);
-          if (gameControl.checkWin(gameControl.p1Ships))
-            console.log("P2 Wins!");
-          return;
-        }
+      computerAttackFlow();
+      console.log(gameControl.p1Ships);
+      if (gameControl.checkWin(gameControl.p1Ships)) {
+        console.log("P2 Win!");
+        return;
       }
     }
   };
