@@ -224,8 +224,7 @@ const computerPlayer = () => {
     }
     let i = 0;
     let j = 0;
-    while (i < 4 && j < 20) {
-      console.log("seeking");
+    while (i < 4) {
       if (potentialMovesSets[i].length === 0) {
         i++;
         continue;
@@ -240,19 +239,14 @@ const computerPlayer = () => {
       }
       for (const move of potentialMovesSets[i]) {
         let strMove = `${move[0]}${move[1]}`;
-        console.log("here");
-        console.log(hitHistory);
         if (moveHistory.includes(strMove) && !hitHistory.includes(strMove)) {
-          console.log("not here");
           i++;
           break;
         } else if (!moveHistory.includes(strMove)) {
           return move;
         }
       }
-      j++;
     }
-    console.log("leaking");
   };
 
   const createPotentialCoord = (row, col, inc, vert) => {
@@ -293,7 +287,6 @@ const computerPlayer = () => {
     console.log(coord);
     let [row, col] = coord;
     while (!checkNoRepeatMove(row, col) || !checkInBoundMove(row, col)) {
-      console.log("looping");
       if (hitHistory.length === 0) {
         coord = randomCheckerMove();
       } else {
