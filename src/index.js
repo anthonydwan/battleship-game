@@ -187,7 +187,7 @@ const computerPlayer = () => {
     if (row % 2 == 0) {
       col = Math.floor(Math.random() * 5) * 2;
     } else {
-      col = Math.floor(Math.random() * 5);
+      col = Math.floor(Math.random() * 5) * 2 + 1;
     }
     return [row, col];
   };
@@ -223,21 +223,36 @@ const computerPlayer = () => {
       );
     }
     let i = 0;
-    while (i < 4) {
+    let j = 0;
+    while (i < 4 && j < 20) {
+      console.log("seeking");
       if (potentialMovesSets[i].length === 0) {
+        i++;
+        continue;
+      }
+      if (
+        potentialMovesSets[i].every((move) =>
+          moveHistory.includes(`${move[0]}${move[1]}`)
+        )
+      ) {
         i++;
         continue;
       }
       for (const move of potentialMovesSets[i]) {
         let strMove = `${move[0]}${move[1]}`;
+        console.log("here");
+        console.log(hitHistory);
         if (moveHistory.includes(strMove) && !hitHistory.includes(strMove)) {
+          console.log("not here");
           i++;
           break;
         } else if (!moveHistory.includes(strMove)) {
           return move;
         }
       }
+      j++;
     }
+    console.log("leaking");
   };
 
   const createPotentialCoord = (row, col, inc, vert) => {
@@ -269,17 +284,23 @@ const computerPlayer = () => {
   };
 
   const shoot = () => {
-    let row = 0;
-    let col = 0;
     let coord = null;
+    if (hitHistory.length === 0) {
+      coord = randomCheckerMove();
+    } else {
+      coord = seekDirectionMove();
+    }
+    console.log(coord);
+    let [row, col] = coord;
     while (!checkNoRepeatMove(row, col) || !checkInBoundMove(row, col)) {
+      console.log("looping");
       if (hitHistory.length === 0) {
         coord = randomCheckerMove();
       } else {
         coord = seekDirectionMove();
       }
-      row = coord[0];
-      col = coord[1];
+      console.log(coord);
+      [row, col] = coord;
     }
     return [row, col];
   };
@@ -390,7 +411,10 @@ const gameControl = (() => {
   */
 
   const checkWin = (ships) => {
-    ships.every((ship) => ship.isSunk());
+    for (let shipObj of ships) {
+      if (!shipObj.isSunk()) return false;
+    }
+    return true;
   };
 
   const p1Move = (row, col) => {
@@ -530,6 +554,7 @@ const domControl = () => {
   };
 
   const p1AttackFlowOnDOM = (row, col, div) => {
+    console.log("?");
     if (!gameControl.p1Move(row, col)) return false;
     let moveIndicator = makeCross(div);
     if (gameControl.p2Board.receiveAttack(row, col)) {
@@ -540,17 +565,20 @@ const domControl = () => {
         for (let coord of shipObj.hitbox) {
           let grid = document.querySelector(`#${OPP_BOARD_GRID}${coord}`);
           grid.classList.add("hit");
-          console.log("P1 Sunk a ship");
         }
+        console.log("P1 Sunk a ship");
       }
     }
     return true;
   };
 
   const computerAttackFlow = () => {
+    console.log("1!!");
     let [row, col] = gameControl.p2Move();
+    console.log("2!!");
     let p1grid = document.querySelector(`#${SELF_BOARD_GRID}${row}${col}`);
     let moveIndicator = makeCross(p1grid);
+    console.log("3!!");
     if (gameControl.p1Board.receiveAttack(row, col)) {
       console.log("P2 hit");
       moveIndicator.classList.add("indicatorHit");
@@ -565,18 +593,23 @@ const domControl = () => {
 
   const normalGameTurn = (e) => {
     // FIXME: loop does not end
-    // FIXME: check, pretty sure shots are not taken in right order, need to make the loop more clean
+    if (
+      gameControl.checkWin(gameControl.p2Ships) ||
+      gameControl.checkWin(gameControl.p1Ships)
+    )
+      return;
+    console.log("A");
     let gridDiv = e.currentTarget;
     let rowAttack = getDivIdNum(gridDiv, -2);
     let colAttack = getDivIdNum(gridDiv);
     if (!p1AttackFlowOnDOM(rowAttack, colAttack, gridDiv)) return;
-    console.log(gameControl.p2Ships);
+    console.log("B");
     if (gameControl.checkWin(gameControl.p2Ships)) {
       console.log("P1 Win!");
       return;
     } else {
+      console.log("C");
       computerAttackFlow();
-      console.log(gameControl.p1Ships);
       if (gameControl.checkWin(gameControl.p1Ships)) {
         console.log("P2 Win!");
         return;
@@ -689,7 +722,7 @@ const domControl = () => {
 
   // add eventlisteners to the ships and cells
   const domShips = document.querySelectorAll(".ship");
-  const selfGrids = document.querySelectorAll(".selfBoardGrids");
+  const selfGrids = document.querySelectorAll(`.${SELF_BOARD_GRID}`);
   for (const domShip of domShips) {
     domShip.addEventListener("dragstart", dragStart);
     domShip.addEventListener("dragend", dragEnd);
