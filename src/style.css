@@ -12,17 +12,39 @@ body {
   height: 100vh;
   font-family: "Catamaran", sans-serif;
   text-align: center;
+  background-color: #e0e0e0;
+}
+
+#bigContainer {
+  margin: 2rem auto;
+  background-color: #f8f8f8;
+  border-radius: 5rem;
+  min-width: 70rem;
+  max-width: 75rem;
+}
+
+h1 {
+  padding-top: 2.5rem;
+  font-size: 3rem;
+}
+
+.prompt {
+  margin: 0.5rem;
+  height: 3rem;
+  font-size: 2rem;
+  display: block;
 }
 
 .container {
-  height: 800px;
+  height: auto;
+  padding: 0 auto;
   width: 100%;
-  margin: auto;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[2];
+      grid-template-columns: repeat(2, 1fr);
+  -ms-grid-rows: 1;
+      grid-template-rows: 1;
 }
 
 .ship {
@@ -40,7 +62,11 @@ body {
 .boardContainer {
   height: 30rem;
   width: 30rem;
-  margin: auto;
+  margin-bottom: 5rem;
+  -ms-grid-row-align: center;
+      align-self: center;
+  -ms-grid-column-align: center;
+      justify-self: center;
   display: -ms-grid;
   display: grid;
   -webkit-box-sizing: border-box;
@@ -51,11 +77,22 @@ body {
       grid-template-rows: repeat(10, 1fr);
 }
 
+#selfBoard {
+  margin-left: 4rem;
+  margin-right: 1rem;
+}
+
+#oppBoard {
+  margin-right: 4rem;
+  margin-left: 1rem;
+}
+
 .squareDiv {
   display: inline-block;
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
   border: solid 0.0001rem rgba(67, 132, 212, 0.534);
+  background-color: white;
 }
 
 .hold {
@@ -72,6 +109,30 @@ body {
   background-color: rgba(243, 121, 105, 0.795);
 }
 
+@-webkit-keyframes waterMovement {
+  0% {
+    color: #282aa3;
+  }
+  50% {
+    color: rgba(28, 125, 243, 0.808);
+  }
+  100% {
+    color: #282aa3;
+  }
+}
+
+@keyframes waterMovement {
+  0% {
+    color: #282aa3;
+  }
+  50% {
+    color: rgba(28, 125, 243, 0.808);
+  }
+  100% {
+    color: #282aa3;
+  }
+}
+
 .indicatorBase {
   height: 100%;
   background-color: transparent;
@@ -81,9 +142,34 @@ body {
   z-index: 1;
   text-align: center;
   vertical-align: middle;
+  -webkit-animation: waterMovement 12s infinite;
+          animation: waterMovement 12s infinite;
 }
 
 .indicatorHit {
   color: #fc4545;
+  -webkit-animation: none;
+          animation: none;
 }
-/*# sourceMappingURL=style.css.map */
+
+.preGameGrids {
+  background-color: rgba(119, 119, 119, 0.041);
+  border-color: rgba(68, 68, 68, 0.089);
+}
+
+.startGame {
+  position: absolute;
+  -ms-flex-item-align: center;
+      -ms-grid-row-align: center;
+      align-self: center;
+  -ms-grid-column-align: center;
+      justify-self: center;
+  z-index: 2001;
+  font-size: 2rem;
+  padding: 1rem;
+  border: none;
+  background-color: rgba(11, 45, 87, 0.808);
+  color: white;
+  cursor: pointer;
+  border-radius: 1rem;
+}

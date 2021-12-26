@@ -491,6 +491,7 @@ const domControl = () => {
   );
 
   // initial placement of the ships on the dom
+  // TODO: animation for invalid movement of the ship
   for (let i = 0; i < gameControl.p1Board.initShipPlacement.length; i++) {
     let coord = gameControl.p1Board.initShipPlacement[i];
     let shipOnScreen = document.createElement("div");
@@ -571,12 +572,12 @@ const domControl = () => {
     return true;
   };
 
-  // TODO: make the self ship go red when sunk
-  // TODO: prevent from shooting shots during initiate phase
-  // TODO: grey out the opponent grid
-  // TODO: activate start button
-  // TODO: after start game, cannot move the self ships
   // TODO: make a restart game button
+
+  const replayButton = document.createElement("button");
+
+  const prompt = document.querySelector(".prompt");
+  prompt.innerText = "  ";
 
   const computerAttackFlow = () => {
     let [row, col] = gameControl.p2Move();
@@ -605,12 +606,12 @@ const domControl = () => {
     let colAttack = getDivIdNum(gridDiv);
     if (!p1AttackFlowOnDOM(rowAttack, colAttack, gridDiv)) return;
     if (gameControl.checkWin(gameControl.p2Ships)) {
-      console.log("P1 Win!");
+      prompt.innerText = "You Won!";
       return;
     } else {
       computerAttackFlow();
       if (gameControl.checkWin(gameControl.p1Ships)) {
-        console.log("P2 Win!");
+        prompt.innerText = "You Lose!";
         return;
       }
     }
@@ -719,6 +720,44 @@ const domControl = () => {
     );
   };
 
+  const toggleGreyedGrids = () => {
+    const oppGrids = document.querySelectorAll(`.${OPP_BOARD_GRID}`);
+    for (let oppCell of oppGrids) {
+      oppCell.classList.toggle("preGameGrids");
+      oppCell.addEventListener("click", normalGameTurn);
+    }
+  };
+
+  const EndShipSetUp = () => {
+    const domShips = document.querySelectorAll(".ship");
+    const selfGrids = document.querySelectorAll(`.${SELF_BOARD_GRID}`);
+    for (const domShip of domShips) {
+      domShip.removeEventListener("dragstart", dragStart);
+      domShip.removeEventListener("dragend", dragEnd);
+      domShip.removeEventListener("click", clickRotateShip);
+      domShip.setAttribute("draggable", false);
+      domShip.style.cursor = "default";
+    }
+    for (const cell of selfGrids) {
+      cell.removeEventListener("dragover", dragOver);
+      cell.removeEventListener("dragenter", dragEnter);
+      cell.removeEventListener("dragleave", dragLeave);
+      cell.removeEventListener("drop", dragDrop);
+    }
+  };
+
+  const removeSelf = (e) => {
+    let currDiv = e.currentTarget;
+    let parent = currDiv.parentElement;
+    parent.removeChild(currDiv);
+  };
+
+  const startGame = (e) => {
+    toggleGreyedGrids();
+    removeSelf(e);
+    EndShipSetUp();
+  };
+
   // add eventlisteners to the ships and cells
   const domShips = document.querySelectorAll(".ship");
   const selfGrids = document.querySelectorAll(`.${SELF_BOARD_GRID}`);
@@ -744,10 +783,23 @@ const domControl = () => {
     OPP_BOARD_GRID
   );
 
-  const oppGrids = document.querySelectorAll(`.${OPP_BOARD_GRID}`);
-  for (let oppCell of oppGrids) {
-    oppCell.addEventListener("click", normalGameTurn);
-  }
+  const preGame = () => {
+    const oppGrids = document.querySelectorAll(`.${OPP_BOARD_GRID}`);
+    oppGrids.forEach((oppCell) => oppCell.classList.toggle("preGameGrids"));
+  };
+
+  const startGameButton = () => {
+    const button = document.createElement("button");
+    button.innerText = "Start Game";
+    button.classList.add("startGame");
+    const oppBoard = document.querySelector("#oppBoard");
+    oppBoard.appendChild(button);
+    return button;
+  };
+
+  preGame();
+  let button = startGameButton();
+  button.addEventListener("click", startGame);
 };
 
 domControl();

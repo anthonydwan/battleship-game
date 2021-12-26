@@ -11,14 +11,36 @@ body {
   height: 100vh;
   font-family: "Catamaran", sans-serif;
   text-align: center;
+  background-color: rgb(224, 224, 224);
+}
+
+#bigContainer {
+  margin: 2rem auto;
+  background-color: rgb(248, 248, 248);
+  border-radius: 5rem;
+  min-width: 70rem;
+  max-width: 75rem;
+}
+
+h1 {
+  padding-top: 2.5rem;
+  font-size: 3rem;
+}
+
+.prompt {
+  margin: 0.5rem;
+  height: 3rem;
+  font-size: 2rem;
+  display: block;
 }
 
 .container {
-  height: 800px;
+  height: auto;
+  padding: 0 auto;
   width: 100%;
-  margin: auto;
-  display: flex;
-  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1;
 }
 
 .ship {
@@ -36,17 +58,30 @@ body {
 .boardContainer {
   height: 30rem;
   width: 30rem;
-  margin: auto;
+  margin-bottom: 5rem;
+  align-self: center;
+  justify-self: center;
   display: grid;
   box-sizing: border-box;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
 }
 
+#selfBoard {
+  margin-left: 4rem;
+  margin-right: 1rem;
+}
+
+#oppBoard {
+  margin-right: 4rem;
+  margin-left: 1rem;
+}
+
 .squareDiv {
   display: inline-block;
   box-sizing: border-box;
   border: solid 0.0001rem rgba(67, 132, 212, 0.534);
+  background-color: white;
 }
 
 .hold {
@@ -65,6 +100,18 @@ body {
   background-color: rgba(243, 121, 105, 0.795);
 }
 
+@keyframes waterMovement {
+  0% {
+    color: rgb(40, 42, 163);
+  }
+  50% {
+    color: rgba(28, 125, 243, 0.808);
+  }
+  100% {
+    color: rgb(40, 42, 163);
+  }
+}
+
 .indicatorBase {
   height: 100%;
   background-color: transparent;
@@ -74,8 +121,29 @@ body {
   z-index: 1;
   text-align: center;
   vertical-align: middle;
+  animation: waterMovement 12s infinite;
 }
 
 .indicatorHit {
   color: rgb(252, 69, 69);
+  animation: none;
+}
+
+.preGameGrids {
+  background-color: rgba(119, 119, 119, 0.041);
+  border-color: rgba(68, 68, 68, 0.089);
+}
+
+.startGame {
+  position: absolute;
+  align-self: center;
+  justify-self: center;
+  z-index: 2001;
+  font-size: 2rem;
+  padding: 1rem;
+  border: none;
+  background-color: rgba(11, 45, 87, 0.808);
+  color: white;
+  cursor: pointer;
+  border-radius: 1rem;
 }
