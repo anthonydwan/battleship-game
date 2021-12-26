@@ -546,38 +546,48 @@ const domControl = () => {
     return moveIndicator;
   };
 
+  const sunkShipDom = (shipObj, GRID) => {
+    if (!shipObj.isSunk()) return false;
+    for (let coord of shipObj.hitbox) {
+      let grid = document.querySelector(`#${GRID}${coord}`);
+      grid.classList.add("hit");
+      let firstChildDiv = grid.firstChild;
+      if (firstChildDiv.classList.contains("ship")) {
+        grid.removeChild(firstChildDiv);
+      }
+    }
+    return true;
+  };
+
   const p1AttackFlowOnDOM = (row, col, div) => {
-    console.log("?");
     if (!gameControl.p1Move(row, col)) return false;
     let moveIndicator = makeCross(div);
     if (gameControl.p2Board.receiveAttack(row, col)) {
       console.log("P1 Hit!");
       moveIndicator.classList.add("indicatorHit");
       let shipObj = gameControl.p2Board.board[row][col]["hasShip"];
-      if (shipObj.isSunk()) {
-        for (let coord of shipObj.hitbox) {
-          let grid = document.querySelector(`#${OPP_BOARD_GRID}${coord}`);
-          grid.classList.add("hit");
-        }
-        console.log("P1 Sunk a ship");
-      }
+      if (sunkShipDom(shipObj, OPP_BOARD_GRID)) console.log("P1 Sunk a ship");
     }
     return true;
   };
 
+  // TODO: make the self ship go red when sunk
+  // TODO: prevent from shooting shots during initiate phase
+  // TODO: grey out the opponent grid
+  // TODO: activate start button
+  // TODO: after start game, cannot move the self ships
+  // TODO: make a restart game button
+
   const computerAttackFlow = () => {
-    console.log("1!!");
     let [row, col] = gameControl.p2Move();
-    console.log("2!!");
     let p1grid = document.querySelector(`#${SELF_BOARD_GRID}${row}${col}`);
     let moveIndicator = makeCross(p1grid);
-    console.log("3!!");
     if (gameControl.p1Board.receiveAttack(row, col)) {
       console.log("P2 hit");
       moveIndicator.classList.add("indicatorHit");
       gameControl.p2.registerHit(row, col);
       let shipObj = gameControl.p1Board.board[row][col]["hasShip"];
-      if (shipObj.isSunk()) {
+      if (sunkShipDom(shipObj, SELF_BOARD_GRID)) {
         console.log("P2 Sunk a Ship");
         gameControl.p2.clearMemoryWhenSunkShip(shipObj);
       }
@@ -585,23 +595,19 @@ const domControl = () => {
   };
 
   const normalGameTurn = (e) => {
-    // FIXME: loop does not end
     if (
       gameControl.checkWin(gameControl.p2Ships) ||
       gameControl.checkWin(gameControl.p1Ships)
     )
       return;
-    console.log("A");
     let gridDiv = e.currentTarget;
     let rowAttack = getDivIdNum(gridDiv, -2);
     let colAttack = getDivIdNum(gridDiv);
     if (!p1AttackFlowOnDOM(rowAttack, colAttack, gridDiv)) return;
-    console.log("B");
     if (gameControl.checkWin(gameControl.p2Ships)) {
       console.log("P1 Win!");
       return;
     } else {
-      console.log("C");
       computerAttackFlow();
       if (gameControl.checkWin(gameControl.p1Ships)) {
         console.log("P2 Win!");
