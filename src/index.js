@@ -319,7 +319,7 @@ const computerPlayer = () => {
   };
 };
 
-const gameControl = (() => {
+const gameControl = () => {
   const randomPlaceShipsOnBoard = (ships, board) => {
     for (const ship of ships) {
       let [row, col, vert] = generateCoordAlign();
@@ -351,7 +351,7 @@ const gameControl = (() => {
     return [row, col, vert];
   };
 
-  const initiateGame = (mode = "playerVersusComputer") => {
+  const initiateGame = () => {
     const player1 = humanPlayer();
     const player2 = computerPlayer();
     const p1Board = createGameBoard();
@@ -444,9 +444,11 @@ const gameControl = (() => {
     p2Move,
     checkWin,
   };
-})();
+};
 
 const domControl = () => {
+  let game = gameControl();
+
   const container = document.querySelector(".container");
 
   const SELF_BOARD_GRID = "selfGrids";
@@ -492,8 +494,8 @@ const domControl = () => {
 
   // initial placement of the ships on the dom
   // TODO: animation for invalid movement of the ship
-  for (let i = 0; i < gameControl.p1Board.initShipPlacement.length; i++) {
-    let coord = gameControl.p1Board.initShipPlacement[i];
+  for (let i = 0; i < game.p1Board.initShipPlacement.length; i++) {
+    let coord = game.p1Board.initShipPlacement[i];
     let shipOnScreen = document.createElement("div");
     shipOnScreen.classList.add("ship");
     shipOnScreen.setAttribute("id", `p1Ship${i}`);
@@ -527,8 +529,8 @@ const domControl = () => {
       let temp = currDiv.style.height;
       currDiv.style.height = currDiv.style.width;
       currDiv.style.width = temp;
-      gameControl.updateBoard(
-        gameControl.p1Board,
+      game.updateBoard(
+        game.p1Board,
         shipNum,
         currShipHead["row"],
         currShipHead["col"],
@@ -561,12 +563,12 @@ const domControl = () => {
   };
 
   const p1AttackFlowOnDOM = (row, col, div) => {
-    if (!gameControl.p1Move(row, col)) return false;
+    if (!game.p1Move(row, col)) return false;
     let moveIndicator = makeCross(div);
-    if (gameControl.p2Board.receiveAttack(row, col)) {
+    if (game.p2Board.receiveAttack(row, col)) {
       console.log("P1 Hit!");
       moveIndicator.classList.add("indicatorHit");
-      let shipObj = gameControl.p2Board.board[row][col]["hasShip"];
+      let shipObj = game.p2Board.board[row][col]["hasShip"];
       if (sunkShipDom(shipObj, OPP_BOARD_GRID)) console.log("P1 Sunk a ship");
     }
     return true;
@@ -574,7 +576,6 @@ const domControl = () => {
   // TODO: add icon on the header
   // TODO: github icon and link
   // TODO: add the icon on the tab
-  // TODO: make a restart game button
 
   const replayButtonOnDOM = () => {
     const replayButton = document.createElement("button");
@@ -595,38 +596,34 @@ const domControl = () => {
   const prompt = document.querySelector(".prompt");
 
   const computerAttackFlow = () => {
-    let [row, col] = gameControl.p2Move();
+    let [row, col] = game.p2Move();
     let p1grid = document.querySelector(`#${SELF_BOARD_GRID}${row}${col}`);
     let moveIndicator = makeCross(p1grid);
-    if (gameControl.p1Board.receiveAttack(row, col)) {
+    if (game.p1Board.receiveAttack(row, col)) {
       console.log("P2 hit");
       moveIndicator.classList.add("indicatorHit");
-      gameControl.p2.registerHit(row, col);
-      let shipObj = gameControl.p1Board.board[row][col]["hasShip"];
+      game.p2.registerHit(row, col);
+      let shipObj = game.p1Board.board[row][col]["hasShip"];
       if (sunkShipDom(shipObj, SELF_BOARD_GRID)) {
         console.log("P2 Sunk a Ship");
-        gameControl.p2.clearMemoryWhenSunkShip(shipObj);
+        game.p2.clearMemoryWhenSunkShip(shipObj);
       }
     }
   };
 
   const normalGameTurn = (e) => {
-    if (
-      gameControl.checkWin(gameControl.p2Ships) ||
-      gameControl.checkWin(gameControl.p1Ships)
-    )
-      return;
+    if (game.checkWin(game.p2Ships) || game.checkWin(game.p1Ships)) return;
     let gridDiv = e.currentTarget;
     let rowAttack = getDivIdNum(gridDiv, -2);
     let colAttack = getDivIdNum(gridDiv);
     if (!p1AttackFlowOnDOM(rowAttack, colAttack, gridDiv)) return;
-    if (gameControl.checkWin(gameControl.p2Ships)) {
+    if (game.checkWin(game.p2Ships)) {
       prompt.innerText = "You Won!";
       let replayButton = replayButtonOnDOM();
       return;
     } else {
       computerAttackFlow();
-      if (gameControl.checkWin(gameControl.p1Ships)) {
+      if (game.checkWin(game.p1Ships)) {
         prompt.innerText = "You Lose!";
         let replayButton = replayButtonOnDOM();
         return;
@@ -693,20 +690,15 @@ const domControl = () => {
         `#${SELF_BOARD_GRID}${correctedRow}${correctedCol}`
       );
       correctedCell.append(shipDiv);
-      gameControl.updateBoard(
-        gameControl.p1Board,
-        shipNum,
-        correctedRow,
-        correctedCol
-      );
+      game.updateBoard(game.p1Board, shipNum, correctedRow, correctedCol);
     } else {
       console.log("failed check (bound or collision)");
       let originalCell = document.querySelector(
         `#${SELF_BOARD_GRID}${currShipHead["row"]}${currShipHead["col"]}`
       );
       originalCell.append(shipDiv);
-      gameControl.updateBoard(
-        gameControl.p1Board,
+      game.updateBoard(
+        game.p1Board,
         shipNum,
         currShipHead["row"],
         currShipHead["col"]
@@ -715,7 +707,7 @@ const domControl = () => {
   };
 
   const getCurrShipPosInfo = (shipNum) => {
-    let info = gameControl.p1Board.initShipPlacement[shipNum];
+    let info = game.p1Board.initShipPlacement[shipNum];
     return {
       length: info["length"],
       vert: info["vert"],
@@ -725,16 +717,10 @@ const domControl = () => {
   const checkDomShipPosition = (row, col, shipDiv, rotate = false) => {
     let shipNum = getDivIdNum(shipDiv);
     console.log(shipNum);
-    let currShipObj = gameControl.p1Ships[shipNum];
+    let currShipObj = game.p1Ships[shipNum];
     let { length, vert } = getCurrShipPosInfo(shipNum);
     if (rotate) vert = !vert;
-    return gameControl.p1Board.checkPosition(
-      row,
-      col,
-      length,
-      vert,
-      currShipObj
-    );
+    return game.p1Board.checkPosition(row, col, length, vert, currShipObj);
   };
 
   const toggleGreyedGrids = () => {
