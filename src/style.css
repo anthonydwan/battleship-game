@@ -157,13 +157,7 @@ h1 {
   border-color: rgba(68, 68, 68, 0.089);
 }
 
-.startGame {
-  position: absolute;
-  -ms-flex-item-align: center;
-      -ms-grid-row-align: center;
-      align-self: center;
-  -ms-grid-column-align: center;
-      justify-self: center;
+button {
   z-index: 2001;
   font-size: 2rem;
   padding: 1rem;
@@ -172,4 +166,10 @@ h1 {
   color: white;
   cursor: pointer;
   border-radius: 1rem;
+  position: absolute;
+  -ms-flex-item-align: center;
+      -ms-grid-row-align: center;
+      align-self: center;
+  -ms-grid-column-align: center;
+      justify-self: center;
 }

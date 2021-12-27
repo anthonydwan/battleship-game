@@ -571,13 +571,28 @@ const domControl = () => {
     }
     return true;
   };
-
+  // TODO: add icon on the header
+  // TODO: github icon and link
+  // TODO: add the icon on the tab
   // TODO: make a restart game button
 
-  const replayButton = document.createElement("button");
+  const replayButtonOnDOM = () => {
+    const replayButton = document.createElement("button");
+    replayButton.innerText = "Replay Game";
+    const oppBoard = document.querySelector("#oppBoard");
+    oppBoard.appendChild(replayButton);
+    replayButton.addEventListener("click", replayGame);
+  };
+
+  const replayGame = () => {
+    const container = document.querySelector(".container");
+    const prompt = document.querySelector(".prompt");
+    container.innerHTML = "";
+    prompt.innerText = "";
+    domControl();
+  };
 
   const prompt = document.querySelector(".prompt");
-  prompt.innerText = "  ";
 
   const computerAttackFlow = () => {
     let [row, col] = gameControl.p2Move();
@@ -607,11 +622,13 @@ const domControl = () => {
     if (!p1AttackFlowOnDOM(rowAttack, colAttack, gridDiv)) return;
     if (gameControl.checkWin(gameControl.p2Ships)) {
       prompt.innerText = "You Won!";
+      let replayButton = replayButtonOnDOM();
       return;
     } else {
       computerAttackFlow();
       if (gameControl.checkWin(gameControl.p1Ships)) {
         prompt.innerText = "You Lose!";
+        let replayButton = replayButtonOnDOM();
         return;
       }
     }
@@ -791,15 +808,13 @@ const domControl = () => {
   const startGameButton = () => {
     const button = document.createElement("button");
     button.innerText = "Start Game";
-    button.classList.add("startGame");
     const oppBoard = document.querySelector("#oppBoard");
     oppBoard.appendChild(button);
-    return button;
+    button.addEventListener("click", startGame);
   };
 
   preGame();
-  let button = startGameButton();
-  button.addEventListener("click", startGame);
+  startGameButton();
 };
 
 domControl();
