@@ -51,8 +51,12 @@ h1 {
   display: block;
 }
 
+.boardContainer {
+  border: 2px solid #7c7f9e;
+}
+
 .container {
-  height: auto;
+  height: 32rem;
   padding: 0 auto;
   width: 100%;
   display: -ms-grid;
@@ -69,7 +73,7 @@ h1 {
   background-color: rgba(88, 88, 88, 0.205);
   overflow: visible;
   position: absolute;
-  border: solid 0.2rem #2a2d33;
+  border: solid 0.2rem #666970;
   border-radius: 1.2rem;
   cursor: move;
   z-index: 100;
@@ -154,7 +158,7 @@ h1 {
   background-color: transparent;
   font-family: "Kodchasan", sans-serif;
   color: #282aa3;
-  font-size: 2.2rem;
+  font-size: 2.1rem;
   z-index: 1;
   text-align: center;
   vertical-align: middle;
@@ -188,6 +192,18 @@ button {
       align-self: center;
   -ms-grid-column-align: center;
       justify-self: center;
-  -webkit-transition: 1s cubic-bezier(1, 0, 0, 1);
-  transition: 1s cubic-bezier(1, 0, 0, 1);
+  -webkit-transition: ease-in-out 0.2s;
+  transition: ease-in-out 0.2s;
+}
+
+button:hover {
+  background-color: rgba(95, 134, 182, 0.808);
+}
+
+img {
+  height: 2rem;
+  -ms-flex-item-align: center;
+      -ms-grid-row-align: center;
+      align-self: center;
+  margin-bottom: 2rem;
 }
