@@ -493,7 +493,6 @@ const domControl = () => {
   );
 
   // initial placement of the ships on the dom
-  // TODO: animation for invalid movement of the ship
   for (let i = 0; i < game.p1Board.initShipPlacement.length; i++) {
     let coord = game.p1Board.initShipPlacement[i];
     let shipOnScreen = document.createElement("div");
@@ -537,6 +536,8 @@ const domControl = () => {
         true
       );
     } else {
+      currDiv.classList.toggle("shipFail");
+      setTimeout(() => currDiv.classList.toggle("shipFail"), 500);
       console.log("failed position test (rotate)");
     }
   };
@@ -573,9 +574,6 @@ const domControl = () => {
     }
     return true;
   };
-  // TODO: add icon on the header
-  // TODO: github icon and link
-  // TODO: add the icon on the tab
 
   const replayButtonOnDOM = () => {
     const replayButton = document.createElement("button");
@@ -692,6 +690,8 @@ const domControl = () => {
       correctedCell.append(shipDiv);
       game.updateBoard(game.p1Board, shipNum, correctedRow, correctedCol);
     } else {
+      shipDiv.classList.toggle("shipFail");
+      setTimeout(() => shipDiv.classList.toggle("shipFail"), 50);
       console.log("failed check (bound or collision)");
       let originalCell = document.querySelector(
         `#${SELF_BOARD_GRID}${currShipHead["row"]}${currShipHead["col"]}`

@@ -74,7 +74,7 @@ h1 {
   overflow: visible;
   position: absolute;
   border: solid 0.2rem #666970;
-  border-radius: 1.2rem;
+  border-radius: 0.8rem;
   cursor: move;
   z-index: 100;
 }
@@ -206,4 +206,76 @@ img {
       -ms-grid-row-align: center;
       align-self: center;
   margin-bottom: 2rem;
+  -webkit-transition: all 0.5s ease-in-out;
+  transition: all 0.5s ease-in-out;
+}
+
+img:hover {
+  -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+}
+
+@-webkit-keyframes shake {
+  10%,
+  90% {
+    -webkit-transform: translate3d(-1px, 0, 0);
+            transform: translate3d(-1px, 0, 0);
+  }
+  20%,
+  80% {
+    -webkit-transform: translate3d(2px, 0, 0);
+            transform: translate3d(2px, 0, 0);
+    background-color: rgba(206, 87, 87, 0.897);
+    border-color: red;
+  }
+  30%,
+  50%,
+  70% {
+    -webkit-transform: translate3d(-4px, 0, 0);
+            transform: translate3d(-4px, 0, 0);
+    background-color: rgba(206, 87, 87, 0.897);
+    border-color: red;
+  }
+  40%,
+  60% {
+    -webkit-transform: translate3d(4px, 0, 0);
+            transform: translate3d(4px, 0, 0);
+    background-color: rgba(206, 87, 87, 0.897);
+    border-color: red;
+  }
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    -webkit-transform: translate3d(-1px, 0, 0);
+            transform: translate3d(-1px, 0, 0);
+  }
+  20%,
+  80% {
+    -webkit-transform: translate3d(2px, 0, 0);
+            transform: translate3d(2px, 0, 0);
+    background-color: rgba(206, 87, 87, 0.897);
+    border-color: red;
+  }
+  30%,
+  50%,
+  70% {
+    -webkit-transform: translate3d(-4px, 0, 0);
+            transform: translate3d(-4px, 0, 0);
+    background-color: rgba(206, 87, 87, 0.897);
+    border-color: red;
+  }
+  40%,
+  60% {
+    -webkit-transform: translate3d(4px, 0, 0);
+            transform: translate3d(4px, 0, 0);
+    background-color: rgba(206, 87, 87, 0.897);
+    border-color: red;
+  }
+}
+
+.shipFail {
+  -webkit-animation: shake 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
+          animation: shake 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
 }
